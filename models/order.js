@@ -42,7 +42,7 @@ const orderSchema = mongoose.Schema({
     weight: Number,
     location: Object,
     itemdetails: Object,
-    pickedby: { type: mongoose.Schema.Types.ObjectId, ref: 'carrier' },
+    pickedby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
     billCode: String,
     created_at: {
         type: Date,
