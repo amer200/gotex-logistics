@@ -48,9 +48,10 @@ const orderSchema = mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    canceldescription: String,
     status: {
         type: String,
-        enum: ['pick up', 'pending', 'delivered', 'canceled'],
+        enum: ['pending', 'pick up', 'delivered', 'canceled', ''],
         default: 'pending'
     }
 }, { versionKey: false, strict: false, })

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = mongoose.Schema({
 
-    username: String,
+
     password: String,
     email: {
         type: String,
@@ -11,14 +11,10 @@ const userSchema = mongoose.Schema({
     mobile: String,
     role: {
         type: String,
-        enum: ['user', 'admin'],
-        default: 'user'
+        enum: ['data entry', 'admin'],
+        default: 'data entry'
     },
-    nid: {
-        type: String,
-        unique: true
-    },
-
+    nid: String,
     address: String,
     city: String,
     firstName: String,
@@ -27,6 +23,5 @@ const userSchema = mongoose.Schema({
 
 
 }, { versionKey: false, strict: false, })
-userSchema.index({ username: 1 }, { unique: false })
 
 module.exports = mongoose.model("User", userSchema);

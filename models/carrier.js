@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
 
 const carrierSchema = mongoose.Schema({
-
-    username: String,
     password: String,
     email: {
         type: String,
@@ -15,16 +13,13 @@ const carrierSchema = mongoose.Schema({
         type: String,
         default: 'carrier'
     },
-    nid: {
-        type: String,
-        unique: true
-    },
+    nid: String,
     photo: String,
     papers: [String],
+    area: [String],
     firstName: String,
     lastName: String,
 }, { versionKey: false, strict: false, })
-carrierSchema.index({ username: 1 }, { unique: false })
-carrierSchema.index({ city: 1 }, { unique: false })
+carrierSchema.index({ area: 1 }, { unique: false })
 
 module.exports = mongoose.model("Carrier", carrierSchema);
