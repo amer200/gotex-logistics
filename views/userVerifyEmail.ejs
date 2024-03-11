@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal&display=swap');
+
+        .email-box {
+            width: 100% !important;
+            padding: 1rem !important;
+        }
+
+        * {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .btn-email {
+            text-decoration: none;
+        }
+
+        .btn-email:hover {
+            background-color: #215a77;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container" style="display: flex;padding: 1rem; background-color: #f6f8fc;" dir="rtl">
+        <div class="email-box"
+            style="margin: auto; background-color: #fff;padding-top: 1rem; box-shadow: 5px 5px 10px #8ca0aa; border-radius: 5px;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <img class="logo" src="https://gotex.vercel.app/static/media/logo.53d20c662c9641d190bf.png" alt="logo"
+                    style="margin: auto; width: 80px;">
+            </div>
+            <h3 style="color: #08354c;font-size:1.2rem;">مرحبا..</h3>
+            <h5 style="color: #0b4461;font-size:1rem;">من فضلك اضغط فوق الزر بالأسفل للتحقق من عنوان بريدك
+                الإلكتروني.
+            </h5>
+            <div style="text-align: center; padding-bottom: 2rem;">
+                <!-- param1 is the userId -->
+                <a class="btn-email" href="https://gotex.vercel.app/user/verify-email/<%=param1%>"
+                    style="margin-top: 2rem; color: #fff; background-color: #08354c; display: inline-block; padding: .5rem 1rem; font-size: 1.1rem; font-weight: 400; text-align: center; white-space: nowrap; vertical-align: middle; cursor: pointer; border: 1px solid transparent; border-radius: .25rem; transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;">
+                    توثيق البريد الالكترونى
+                </a>
+            </div>
+            <h5 style="color: #08354c;font-size:1rem;">جوتكس</h5>
+        </div>
+    </div>
+</body>
+
+</html>
