@@ -44,17 +44,13 @@ const orderSchema = mongoose.Schema({
     itemdetails: Object,
     pickedby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
     billCode: String,
-    created_at: {
-        type: Date,
-        default: Date.now
-    },
     canceldescription: String,
     status: {
         type: String,
         enum: ['pending', 'pick up', 'delivered', 'canceled', ''],
         default: 'pending'
     }
-}, { versionKey: false, strict: false, })
+}, { versionKey: false, strict: false, }, { timestamps: true })
 orderSchema.pre('save', function (next) {
     if (this.isNew) {
         this.ordernumber = this._id.toString().slice(-10);
