@@ -51,6 +51,22 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
 
     return res.status(200).json({ msg: 'Email sent successfully' });
 })
+exports.resendVerifyEmail = asyncHandler(async (req, res) => {
+    const id = req.params.id;
+
+    const carrier = await Carrier.findById(id)
+    if (!carrier) {
+        return res.status(409).json({ msg: "User is not found" })
+    }
+
+    const response = await sendEmail(carrier.email, carrier._id, '', "/../views/carrierVerifyEmail.ejs", mailSubject)
+    if (response && response.error) {
+        console.error(response.error);
+        return res.status(500).json({ msg: 'Failed to send email' });
+    }
+
+    return res.status(200).json({ msg: 'Email sent successfully' });
+})
 
 exports.setPasswordFirstTime = asyncHandler(async (req, res) => {
     const { carrierId } = req.params;

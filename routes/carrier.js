@@ -5,10 +5,11 @@ const carrierSchema = require("../utils/validators/carrierSchema");
 const isVerifiedCodeToken = require("../middlewares/verifyCodeToken");
 const Carrier = require("../models/carrier");
 const isAuth = require("../middlewares/isAuth");
-const { registerCarrier, getAllCarriers, setPasswordFirstTime, login, activateCarrier, forgetPasswordEmail, resendForgetPasswordCode, verifyForgetPasswordCode, setNewPassword } = require("../controllers/carrier");
+const { registerCarrier, getAllCarriers, setPasswordFirstTime, login, activateCarrier, forgetPasswordEmail, resendForgetPasswordCode, verifyForgetPasswordCode, setNewPassword, resendVerifyEmail } = require("../controllers/carrier");
 
 // with Admin Auth
 routes.post('/register', isAuth('admin'), validate(carrierSchema), registerCarrier);
+routes.post('/resend-verify-email/:id', isAuth('admin'), resendVerifyEmail);
 routes.get('/', isAuth('admin'), getAllCarriers);
 
 routes.post('/set-password/:carrierId', setPasswordFirstTime);

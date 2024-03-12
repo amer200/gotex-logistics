@@ -5,10 +5,11 @@ const isVerifiedCodeToken = require("../middlewares/verifyCodeToken");
 const User = require("../models/user");
 const userSchema = require("../utils/validators/userSchema");
 const isAuth = require("../middlewares/isAuth");
-const { registerUser, getAllUsers, setPasswordFirstTime, login, forgetPasswordEmail, verifyForgetPasswordCode, setNewPassword } = require("../controllers/user");
+const { registerUser, getAllUsers, setPasswordFirstTime, login, forgetPasswordEmail, verifyForgetPasswordCode, setNewPassword, resendVerifyEmail } = require("../controllers/user");
 
 // with Admin Auth
 routes.post('/register', isAuth('admin'), validate(userSchema), registerUser);
+routes.post('/resend-verify-email/:id', isAuth('admin'), resendVerifyEmail);
 routes.get('/', isAuth('admin'), getAllUsers);
 
 routes.post('/set-password/:userId', setPasswordFirstTime);
