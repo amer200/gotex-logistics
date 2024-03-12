@@ -21,7 +21,8 @@ const userSchema = mongoose.Schema({
     verified: {
         type: Boolean,
         default: false
-    }
+    },
+    verifyCode: Number
 }, { versionKey: false, strict: false, })
 
 userSchema.methods.generateAuthToken = async function () {

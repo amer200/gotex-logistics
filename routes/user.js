@@ -1,18 +1,22 @@
 const express = require("express");
 const routes = express.Router();
-// const { isValid, isAuth } = require('../middlewares/user');
-const { registerUser, getAllUsers, setPasswordFirstTime, login, activateUser, logIn, reSendActivateCode, createNewPassword, updatePassword } = require("../controllers/user");
-const { isAdminAuth } = require("../middlewares/admin");
 const validate = require("../middlewares/validate");
+const isVerifiedCodeToken = require("../middlewares/verifyCodeToken");
+const User = require("../models/user");
 const userSchema = require("../utils/validators/userSchema");
+const isAuth = require("../middlewares/isAuth");
+const { registerUser, getAllUsers, setPasswordFirstTime, login, forgetPasswordEmail, verifyForgetPasswordCode, setNewPassword } = require("../controllers/user");
 
-routes.get('/', isAdminAuth, getAllUsers);
-routes.post('/register', validate(userSchema), registerUser);
+// with Admin Auth
+routes.post('/register', isAuth('admin'), validate(userSchema), registerUser);
+routes.get('/', isAuth('admin'), getAllUsers);
+
 routes.post('/set-password/:userId', setPasswordFirstTime);
 routes.post('/login', login);
 
-// routes.get("/resend-activate-code", isAuth, reSendActivateCode);
-// routes.post("/send-email-update-password", createNewPassword);
-// routes.post("/update-password", updatePassword);
+routes.post("/send-forget-password-email", forgetPasswordEmail);
+routes.post("/verify-forget-password-code", isVerifiedCodeToken(User), verifyForgetPasswordCode);
+routes.post("/set-new-password", isVerifiedCodeToken(User), setNewPassword);
+
 
 module.exports = routes

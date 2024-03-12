@@ -1,8 +1,10 @@
 const asyncHandler = require('express-async-handler')
-const Carrier = require("../models/carrier");
 const bcrypt = require('bcrypt');
-const salt = 10;
+const jwt = require("jsonwebtoken");
+const Carrier = require("../models/carrier");
 const sendEmail = require("../utils/sendEmail");
+const genRandomNumber = require('./../utils/genRandomNumber')
+const salt = 10;
 const mailSubject = "Verify your gotex account"
 
 
@@ -41,7 +43,7 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
         area,
     })
 
-    const response = await sendEmail(carrier.email, carrier._id, "/../views/carrierVerifyEmail.ejs", mailSubject)
+    const response = await sendEmail(carrier.email, carrier._id, '', "/../views/carrierVerifyEmail.ejs", mailSubject)
     if (response && response.error) {
         console.error(response.error);
         return res.status(500).json({ msg: 'Failed to send email' });
@@ -56,6 +58,9 @@ exports.setPasswordFirstTime = asyncHandler(async (req, res) => {
 
     const carrier = await Carrier.findById(carrierId)
 
+    if (!carrier) {
+        return res.status(404).json({ msg: "Email is not found" })
+    }
     if (carrier.verified) {
         return res.status(400).json({ msg: "This email is already verified" })
     }
@@ -104,4 +109,78 @@ exports.getAllCarriers = asyncHandler(async (req, res) => {
         result: carriers.length,
         data: carriers
     })
+})
+
+
+
+exports.forgetPasswordEmail = asyncHandler(async (req, res) => {
+    const email = req.body.email;
+
+    const carrier = await Carrier.findOne({ email });
+    if (!carrier) {
+        return res.status(404).json({ msg: "Email is not found" })
+    }
+    if (!carrier.verified) {
+        return res.status(400).json({ msg: "Please verify your email first" })
+    }
+
+    const token = jwt.sign({ email: carrier.email }, process.env.JWT_SECRET,
+        {
+            expiresIn: "10m"
+        });
+
+    carrier.verifyCode = genRandomNumber(6);
+    await carrier.save();
+
+    const response = await sendEmail(carrier.email, carrier._id, carrier.verifyCode, "/../views/forgetPasswordEmail.ejs", mailSubject)
+    if (response && response.error) {
+        console.error(response.error);
+        return res.status(500).json({ msg: 'Failed to send email' });
+    }
+
+    return res.status(200).json({
+        msg: 'Email sent successfully',
+        token
+    });
+})
+exports.resendForgetPasswordCode = asyncHandler(async (req, res) => {
+    const email = req.body.email;
+
+    const carrier = await Carrier.findOne({ email })
+    if (!carrier) {
+        return res.status(404).json({ msg: "Carrier is not found" })
+    }
+
+    carrier.verifyCode = genRandomNumber(6);
+    return carrier.save()
+
+    const response = await sendEmail(carrier.email, carrier._id, carrier.verifyCode, "/../views/forgetPasswordEmail.ejs", mailSubject)
+    if (response && response.error) {
+        console.error(response.error);
+        return res.status(500).json({ msg: 'Failed to send email' });
+    }
+
+    return res.status(200).json({ msg: 'Email sent successfully' });
+})
+exports.verifyForgetPasswordCode = asyncHandler(async (req, res) => {
+    const carrier = req.user
+    const { code } = req.body
+
+    if (carrier.verifyCode != code) {
+        return res.status(400).json({ msg: "Wrong code" })
+    }
+    carrier.verifyCode = genRandomNumber(6)
+    await carrier.save();
+
+    return res.status(200).json({ msg: "ok" })
+})
+exports.setNewPassword = asyncHandler(async (req, res) => {
+    const { password } = req.body
+    const carrier = req.user
+
+    const hash = bcrypt.hashSync(password, salt);
+    carrier.password = hash;
+    await carrier.save()
+
+    res.status(200).json({ msg: "Password changed successfully" })
 })
