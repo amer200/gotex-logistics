@@ -7,7 +7,6 @@ const userSchema = {
             type: "string",
             format: "email"
         }, //unique
-        password: { type: "string" },
         mobile: { type: "string" },
         role: {
             type: "string",
