@@ -1,4 +1,3 @@
-const User = require("../model/user");
 const jwt = require("jsonwebtoken");
 
 exports.isAuth = (req, res, next) => {
