@@ -101,11 +101,11 @@ exports.login = asyncHandler(async (req, res, next) => {
 
     const carrier = await Carrier.findOne({ email })
 
-    if (!carrier.verified) {
-        return res.status(400).json({ msg: "Please verify your email first" })
-    }
     if (!carrier) {
         return res.status(400).json({ msg: "Wrong email or password" })
+    }
+    if (!carrier.verified) {
+        return res.status(400).json({ msg: "Please verify your email first" })
     }
 
     const isMatch = await bcrypt.compare(password, carrier.password)
