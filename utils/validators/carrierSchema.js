@@ -22,8 +22,7 @@ const userSchema = {
         papers: { type: "array" },
         area: { type: "array" },
     },
-    required: ["email", "password", "mobile", "nid", "address", "city", "firstName", "lastName"],
-    // uniqueItemProperties: ['email'],
+    required: ["email", "mobile", "nid", "address", "city", "firstName", "lastName"],
     additionalProperties: false
 }
 

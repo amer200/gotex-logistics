@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 const ejs = require("ejs");
 
-const sendEmail = async (email, param1, temp, mailSubject) => {
+const sendEmail = async (email, param1, param2, temp, mailSubject) => {
     try {
         const transporter = nodemailer.createTransport({
             host: "smtp.hostinger.com",
@@ -13,7 +13,7 @@ const sendEmail = async (email, param1, temp, mailSubject) => {
             },
         });
 
-        const html = await ejs.renderFile(__dirname + temp, { param1 })
+        const html = await ejs.renderFile(__dirname + temp, { param1, param2 })
 
         const mailOptions = {
             from: {

@@ -21,6 +21,7 @@ const carrierSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
+    verifyCode: Number,
     photo: String,
     papers: [String],
     area: [String],

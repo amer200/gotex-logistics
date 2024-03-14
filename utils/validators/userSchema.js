@@ -19,8 +19,7 @@ const userSchema = {
         lastName: { type: "string" },
         verified: { type: "boolean" }
     },
-    required: ["email", "password", "mobile", "nid", "address", "city", "firstName", "lastName"],
-    // uniqueItemProperties: ['email'],
+    required: ["email", "mobile", "nid", "address", "city", "firstName", "lastName"],
     additionalProperties: false
 }
 
