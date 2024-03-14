@@ -1,5 +1,4 @@
 const express = require("express");
-const { isAuth } = require("../middlewares/user");
 const validate = require("../middlewares/validate");
 const orderSchema = require("../utils/validators/orderSchema");
 const routes = express.Router();
