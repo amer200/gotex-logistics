@@ -33,28 +33,28 @@ const orderSchema = mongoose.Schema({
         type: String,
         required: true
     },
-
-
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     ordernumber: String,
     paytype: String,
     price: Number,
+    pieces: Number,
+    description: String,
     weight: Number,
     location: Object,
     itemdetails: Object,
     pickedby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
-    billCode: String,
+    billcode: String,
     canceldescription: String,
     status: {
         type: String,
         enum: ['pending', 'pick up', 'delivered', 'canceled', ''],
         default: 'pending'
     }
-}, { versionKey: false, strict: false, }, { timestamps: true })
+}, { versionKey: false, strict: false, timestamps: true })
 orderSchema.pre('save', function (next) {
     if (this.isNew) {
         this.ordernumber = this._id.toString().slice(-10);
-        this.billCode = this._id.toString().slice(-10) + "Gotex";
+        this.billcode = this._id.toString().slice(-10) + "Gotex";
 
 
     }

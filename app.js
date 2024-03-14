@@ -12,6 +12,7 @@ const { upload } = require('./utils/fileUpload')
 const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
 const carrierRoutes = require("./routes/carrier");
+const orderRoutes = require("./routes/order");
 
 
 dbConnection();
@@ -45,6 +46,9 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 app.use("/user", userRoutes);
 app.use("/carrier", carrierRoutes);
+app.use("/order", orderRoutes);
+
+
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
