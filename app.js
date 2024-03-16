@@ -7,7 +7,7 @@ const { dbConnection } = require('./db/mongoose');
 const initializeSocket = require('./utils/socketHandler');
 const app = express();
 
-const { upload } = require('./utils/fileUpload')
+const { uploadCarrierData } = require('./utils/fileUpload')
 
 const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
@@ -18,9 +18,7 @@ const orderRoutes = require("./routes/order");
 dbConnection();
 
 /** File Upload */
-// app.post('/carrier/register', upload.single('photo'));
-// app.post('/carrier/register', upload.array('papers'));
-app.post('/carrier/register', upload.fields([
+app.post('/carrier/register', uploadCarrierData.fields([
     { name: 'photo', maxCount: 1 },
     { name: 'papers', maxCount: 3 }  // Allow up to 3 papers
 ]));

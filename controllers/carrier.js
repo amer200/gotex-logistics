@@ -14,7 +14,7 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
     let photo = ''
     let papers = []
     if (req.files) {
-        const photo = req.files.photo && req.files.photo[0].path;
+        photo = req.files.photo && req.files.photo[0].path;
 
         if (req.files.papers) {
             req.files.papers.forEach(f => {
