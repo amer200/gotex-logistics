@@ -25,6 +25,7 @@ app.post('/carrier/register', uploadCarrierData.fields([
 
 // Middlewares
 app.use(express.static('public'));
+app.use(express.static('upload'));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json())
 app.set("view engine", "ejs");
