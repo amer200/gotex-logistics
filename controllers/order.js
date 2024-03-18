@@ -54,6 +54,6 @@ exports.getOrder = asyncHandler(async (req, res) => {
     const id = req.params.id;
     const url = await Order.findOne({ _id: id }, { ordernumber: 1, _id: 0 });
     res.status(200).json({
-        url: `upload/${url}.pdf`
+        url: `upload/${url.ordernumber}.pdf`
     })
 })
