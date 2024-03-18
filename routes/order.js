@@ -6,5 +6,6 @@ const { createOrder, getAllOrders } = require("../controllers/order");
 
 routes.get('/get-all', getAllOrders);
 routes.post('/create-order', validate(orderSchema), createOrder);
+routes.get('/getorder/:id', getAllOrders);
 
 module.exports = routes;
