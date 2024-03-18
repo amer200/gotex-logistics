@@ -14,7 +14,7 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
     let photo = ''
     let papers = []
     if (req.files) {
-        const photo = req.files.photo && req.files.photo[0].path;
+        photo = req.files.photo && req.files.photo[0].path;
 
         if (req.files.papers) {
             req.files.papers.forEach(f => {
@@ -101,11 +101,11 @@ exports.login = asyncHandler(async (req, res, next) => {
 
     const carrier = await Carrier.findOne({ email })
 
-    if (!carrier.verified) {
-        return res.status(400).json({ msg: "Please verify your email first" })
-    }
     if (!carrier) {
         return res.status(400).json({ msg: "Wrong email or password" })
+    }
+    if (!carrier.verified) {
+        return res.status(400).json({ msg: "Please verify your email first" })
     }
 
     const isMatch = await bcrypt.compare(password, carrier.password)

@@ -85,11 +85,11 @@ exports.login = asyncHandler(async (req, res, next) => {
 
     const user = await User.findOne({ email })
 
-    if (!user.verified) {
-        return res.status(400).json({ msg: "Please verify your email first" })
-    }
     if (!user) {
         return res.status(400).json({ msg: "Wrong email or password" })
+    }
+    if (!user.verified) {
+        return res.status(400).json({ msg: "Please verify your email first" })
     }
 
     const isMatch = await bcrypt.compare(password, user.password)

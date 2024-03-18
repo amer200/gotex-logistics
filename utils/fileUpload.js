@@ -12,4 +12,4 @@ const storage = (path) => {
     })
 }
 
-exports.upload = multer({ storage: storage('public/photos') })
+exports.uploadCarrierData = multer({ storage: storage('public/carrier') })
