@@ -13,6 +13,7 @@ const adminRoutes = require("./routes/admin");
 const userRoutes = require("./routes/user");
 const carrierRoutes = require("./routes/carrier");
 const orderRoutes = require("./routes/order");
+const storeKeeperRoutes = require("./routes/storekeeper");
 
 
 dbConnection();
@@ -47,6 +48,7 @@ app.use("/admin", adminRoutes);
 app.use("/user", userRoutes);
 app.use("/carrier", carrierRoutes);
 app.use("/order", orderRoutes);
+app.use("/store-keeper", storeKeeperRoutes);
 
 
 

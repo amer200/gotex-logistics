@@ -42,12 +42,13 @@ const orderSchema = mongoose.Schema({
     weight: Number,
     location: Object,
     itemdetails: Object,
+    storekeeeper: { type: mongoose.Schema.Types.ObjectId, ref: 'Storekeeper' },
     pickedby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
     billcode: String,
     canceldescription: String,
     status: {
         type: String,
-        enum: ['pending', 'pick up', 'delivered', 'canceled', ''],
+        enum: ['pending', 'pick to store', 'delivered', 'canceled', 'in store', 'pick to client'],
         default: 'pending'
     }
 }, { versionKey: false, strict: false, timestamps: true })
