@@ -9,8 +9,9 @@ const mailSubject = "Verify your gotex account"
 
 
 exports.registerCarrier = asyncHandler(async (req, res) => {
+    const { role } = req.query
     let { firstName, lastName, email, mobile, nid, city, address, area } = req.body;
-    console.log(req.files)
+
     let photo = ''
     let papers = []
     if (req.files) {
@@ -41,6 +42,7 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
         photo,
         papers,
         area,
+        role
     })
 
     const response = await sendEmail(carrier.email, carrier._id, '', "/../views/carrierVerifyEmail.ejs", mailSubject)

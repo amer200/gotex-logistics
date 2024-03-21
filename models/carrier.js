@@ -10,7 +10,8 @@ const carrierSchema = mongoose.Schema({
     mobile: String,
     role: {
         type: String,
-        default: 'carrier'
+        enum: ['collector', 'receiver'],
+        default: 'collector',
     },
     nid: String,
     address: String,
@@ -25,6 +26,7 @@ const carrierSchema = mongoose.Schema({
     photo: String,
     papers: [String],
     area: [String],
+    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }]
 }, { versionKey: false, strict: false, })
 carrierSchema.index({ area: 1 }, { unique: false })
 
