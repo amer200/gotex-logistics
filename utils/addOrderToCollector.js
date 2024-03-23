@@ -1,3 +1,5 @@
+const Carrier = require('../models/carrier');
+
 /**
  * @Des : After creating order, we add it to a collector that:
  * - has area = sendercity and has the least number of orders to server 
@@ -36,9 +38,9 @@ const addOrderToCollector = async (order) => {
     // console.log("sameCity", JSON.stringify(carriers, null, 2))
     // get carriers with least number of picked orders
     carriers = carriers.reduce((c1, c2) => {
-        if (c1.orders.length == c2.orders.length) {
+        if (c1.orders?.length == c2.orders?.length) {
             return { c1, c2 }
-        } else if (c1.orders.length < c2.orders.length) {
+        } else if (c1.orders?.length < c2.orders?.length) {
             return { c1 };
         } else {
             return { c1: c2 };
@@ -65,9 +67,9 @@ const addOrderToCollector = async (order) => {
         // console.log("sameOrders", JSON.stringify(carriers, null, 2))
         // get carriers with least number of orders
         carriers = carriers.reduce((c1, c2) => {
-            if (c1.orders.length == c2.orders.length) {
+            if (c1.orders?.length == c2.orders?.length) {
                 return { c1, c2 }
-            } else if (c1.orders.length < c2.orders.length) {
+            } else if (c1.orders?.length < c2.orders?.length) {
                 return { c1 };
             } else {
                 return { c1: c2 };
