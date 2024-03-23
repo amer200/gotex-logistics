@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler')
 const Order = require("../models/order");
 const { createPdf } = require("../utils/createPdf");
-const Carrier = require('../models/carrier');
+const addOrderToCollector = require('../utils/addOrderToCollector');
 
 
 exports.createOrder = asyncHandler(async (req, res) => {
