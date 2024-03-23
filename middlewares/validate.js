@@ -4,9 +4,7 @@ const validate = (ajvValidate) => {
 
         if (!valid) {
             const errors = ajvValidate.errors
-            let errorsMsg = []
-            errors.forEach(err => errorsMsg.push({ msg: err.message }))
-            return res.status(400).json({ errors: errorsMsg })
+            return res.status(400).json({ errors: errors })
         }
         next()
     }
