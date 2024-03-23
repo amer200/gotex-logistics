@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler')
 const Order = require("../models/order");
 const { createPdf } = require("../utils/createPdf");
+const Carrier = require('../models/carrier');
 
 
 exports.createOrder = asyncHandler(async (req, res) => {
@@ -13,13 +14,15 @@ exports.createOrder = asyncHandler(async (req, res) => {
         senderaddress,
         sendercity,
         senderphone,
-        createdby,
         paytype,
         price,
         weight,
         pieces,
         description
     } = req.body;
+
+    const createdby = req.user._id
+
     const order = await Order.create({
         pieces,
         recivername,
@@ -37,6 +40,8 @@ exports.createOrder = asyncHandler(async (req, res) => {
         description
     })
     createPdf(order);
+
+    await addOrderToCollector(order)
 
     res.json({ msg: 'order created', data: order })
 })
@@ -56,4 +61,13 @@ exports.getOrder = asyncHandler(async (req, res) => {
     res.status(200).json({
         url: `upload/${url.ordernumber}.pdf`
     })
+})
+
+
+exports.getCollectorOrders = asyncHandler(async (req, res) => {
+    const user = req.user
+    console.log(user)
+    const orders = await Order.find({ pickedby: user._id, role: 'collector' });
+
+    res.status(200).json({ msg: 'ok', data: orders })
 })
