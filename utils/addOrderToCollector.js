@@ -38,17 +38,19 @@ const addOrderToCollector = async (order) => {
     // console.log("sameCity", JSON.stringify(carriers, null, 2))
     // get carriers with least number of picked orders
     carriers = carriers.reduce((c1, c2) => {
-        if (c1.orders?.length == c2.orders?.length) {
-            return { c1, c2 }
-        } else if (c1.orders?.length < c2.orders?.length) {
-            return { c1 };
+        c1 = c1 || []
+        if (c1[0]?.orders?.length == c2.orders.length) {
+            return [...c1, c2]
+        } else if (c1[0]?.orders?.length < c2.orders.length) {
+            return [...c1];
         } else {
-            return { c1: c2 };
+            return [c2];
         }
-    })
+    }, [])
+
     // console.log("sameNotDeliveredOrders", JSON.stringify(carriers, null, 2))
 
-    if (Object.keys(carriers).length > 1) {
+    if (carriers.length > 1) {
         carriers = await Carrier.find({
             role: "collector",
             area: { $in: [order.sendercity] },
@@ -67,20 +69,21 @@ const addOrderToCollector = async (order) => {
         // console.log("sameOrders", JSON.stringify(carriers, null, 2))
         // get carriers with least number of orders
         carriers = carriers.reduce((c1, c2) => {
-            if (c1.orders?.length == c2.orders?.length) {
-                return { c1, c2 }
-            } else if (c1.orders?.length < c2.orders?.length) {
-                return { c1 };
+            c1 = c1 || []
+            if (c1[0]?.orders?.length == c2.orders.length) {
+                return [...c1, c2]
+            } else if (c1[0]?.orders?.length < c2.orders.length) {
+                return [...c1];
             } else {
-                return { c1: c2 };
+                return [c2];
             }
-        })
+        }, [])
         // console.log("sameOrders2", JSON.stringify(carriers, null, 2))
     }
 
-    order.pickedby = carriers.c1._id
-    carriers.c1.orders.push(order._id)
-    await Promise.all([order.save(), carriers.c1.save()])
+    order.pickedby = carriers[0]._id
+    carriers[0].orders.push(order._id)
+    await Promise.all([order.save(), carriers[0].save()])
 }
 
 module.exports = addOrderToCollector
