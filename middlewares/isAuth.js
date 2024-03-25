@@ -15,7 +15,17 @@ const isAuth = (role) => {
                 return res.status(400).json({ msg: err })
             }
             console.log(user)
-            if (user.role == role) {
+
+            if (Array.isArray(role)) {
+                if (role.includes(user.role)) {
+                    req.user = user
+                    next();
+                } else {
+                    res.status(405).json({
+                        msg: "Not allowed"
+                    })
+                }
+            } else if (user.role == role) {
                 req.user = user
                 next();
             } else {
