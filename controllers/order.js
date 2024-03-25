@@ -21,7 +21,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
         description
     } = req.body;
 
-    const createdby = req.user._id
+    const createdby = req.user.id
 
     const order = await Order.create({
         pieces,
@@ -63,11 +63,16 @@ exports.getOrder = asyncHandler(async (req, res) => {
     })
 })
 
+exports.getUserOrders = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const orders = await Order.find({ createdby: userId });
 
-exports.getCollectorOrders = asyncHandler(async (req, res) => {
-    const user = req.user
-    console.log(user)
-    const orders = await Order.find({ pickedby: user._id, role: 'collector' });
+    res.status(200).json({ msg: 'ok', data: orders })
+})
+exports.getCarrierOrders = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    console.log(req.user)
+    const orders = await Order.find({ "pickedby.id": userId })
 
     res.status(200).json({ msg: 'ok', data: orders })
 })

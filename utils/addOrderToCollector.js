@@ -81,7 +81,10 @@ const addOrderToCollector = async (order) => {
         // console.log("sameOrders2", JSON.stringify(carriers, null, 2))
     }
 
-    order.pickedby = carriers[0]._id
+    order.pickedby = {
+        id: carriers[0]._id,
+        role: carriers[0].role
+    }
     carriers[0].orders.push(order._id)
     await Promise.all([order.save(), carriers[0].save()])
 }
