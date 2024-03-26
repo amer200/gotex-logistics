@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler')
 const Order = require("../models/order");
 const { createPdf } = require("../utils/createPdf");
-const addOrderToCollector = require('../utils/addOrderToCollector');
+const addOrderToCarrier = require('../utils/addOrderToCarrier');
 
 
 exports.createOrder = asyncHandler(async (req, res) => {
@@ -41,13 +41,22 @@ exports.createOrder = asyncHandler(async (req, res) => {
     })
     createPdf(order);
 
-    await addOrderToCollector(order)
+    await addOrderToCarrier(order, 'collector')
 
     res.json({ msg: 'order created', data: order })
 })
 
 exports.getAllOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find()
+        .populate([
+            {
+                path: 'pickedby',
+                select: "_id firstName lastName email mobile"
+            }, {
+                path: 'deliveredby',
+                select: "_id firstName lastName email mobile"
+            }
+        ]);
 
     res.status(200).json({
         result: orders.length,
@@ -65,14 +74,30 @@ exports.getOrder = asyncHandler(async (req, res) => {
 
 exports.getUserOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
-    const orders = await Order.find({ createdby: userId });
+    const orders = await Order.find({ createdby: userId })
+        .populate([
+            {
+                path: 'pickedby',
+                select: "_id firstName lastName email mobile"
+            }, {
+                path: 'deliveredby',
+                select: "_id firstName lastName email mobile"
+            }
+        ]);
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
-exports.getCarrierOrders = asyncHandler(async (req, res) => {
+exports.getCollectorOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
     console.log(req.user)
-    const orders = await Order.find({ "pickedby.id": userId })
+    const orders = await Order.find({ pickedby: userId })
+
+    res.status(200).json({ msg: 'ok', data: orders })
+})
+exports.getReceiverOrders = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    console.log(req.user)
+    const orders = await Order.find({ deliveredby: userId })
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
