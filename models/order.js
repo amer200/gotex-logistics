@@ -43,10 +43,8 @@ const orderSchema = new mongoose.Schema({
     location: Object,
     itemdetails: Object,
     storekeeeper: { type: mongoose.Schema.Types.ObjectId, ref: 'Storekeeper' },
-    pickedby: {
-        id: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
-        role: String,
-    },
+    pickedby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
+    deliveredby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
     billcode: String,
     canceldescription: String,
     status: {
