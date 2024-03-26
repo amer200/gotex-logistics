@@ -79,11 +79,11 @@ exports.setPasswordFirstTime = asyncHandler(async (req, res) => {
     if (!carrier) {
         return res.status(404).json({ msg: "Email is not found" })
     }
-    if (carrier.verified) {
-        return res.status(400).json({ msg: "This email is already verified" })
-    }
     if (carrier.email !== email) {
         return res.status(400).json({ msg: "Wrong email" })
+    }
+    if (carrier.verified) {
+        return res.status(400).json({ msg: "This email is already verified" })
     }
 
     if (password !== confirmPassword) {
