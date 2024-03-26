@@ -51,10 +51,10 @@ const orderSchema = new mongoose.Schema({
         type: String,
         enum: [
             'pending',
-            'pick to store',
+            'pick to store', // collector picked it
             'delivered by collector',
             'in store',
-            'pick to client',
+            'pick to client', // receiver picked it
             'delivered by receiver',
             'received',
             'canceled'

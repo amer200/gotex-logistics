@@ -75,29 +75,46 @@ exports.getOrder = asyncHandler(async (req, res) => {
 exports.getUserOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
     const orders = await Order.find({ createdby: userId })
-        .populate([
-            {
-                path: 'pickedby',
-                select: "_id firstName lastName email mobile"
-            }, {
-                path: 'deliveredby',
-                select: "_id firstName lastName email mobile"
-            }
-        ]);
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
 exports.getCollectorOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
-    console.log(req.user)
     const orders = await Order.find({ pickedby: userId })
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
 exports.getReceiverOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
-    console.log(req.user)
     const orders = await Order.find({ deliveredby: userId })
 
     res.status(200).json({ msg: 'ok', data: orders })
+})
+
+
+exports.changeStatusByCollector = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const { orderId, status } = req.body
+
+    const order = await Order.findOneAndUpdate({ _id: orderId, pickedby: userId }, { status }, {
+        new: true
+    });
+    if (!order) {
+        return res.status(404).json({ msg: "Can't change this order status" })
+    }
+
+    res.status(200).json({ msg: 'ok', data: order })
+})
+exports.changeStatusByReceiver = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const { orderId, status } = req.body
+
+    const order = await Order.findOneAndUpdate({ _id: orderId, deliveredby: userId }, { status }, {
+        new: true
+    });
+    if (!order) {
+        return res.status(404).json({ msg: "Can't change this order status" })
+    }
+
+    res.status(200).json({ msg: 'ok', data: order })
 })

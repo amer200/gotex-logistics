@@ -18,7 +18,7 @@ const addOrderToCarrier = async (order, role) => {
     if (role == 'collector') {
         orderStatusArr = ['pending', 'pick to store', 'delivered by collector']
     } else if (role == 'receiver') {
-        orderStatusArr = ['in store', 'delivered by receiver']
+        orderStatusArr = ['in store', 'pick to client', 'delivered by receiver']
     }
 
     /**
@@ -42,7 +42,7 @@ const addOrderToCarrier = async (order, role) => {
             select: "_id createdAt status"
         })
 
-    // console.log("sameCity", JSON.stringify(carriers, null, 2))
+    console.log("sameCity", JSON.stringify(carriers, null, 2))
     // get carriers with least number of picked orders
     carriers = carriers.reduce((c1, c2) => {
         c1 = c1 || []
@@ -73,7 +73,7 @@ const addOrderToCarrier = async (order, role) => {
                 select: "_id createdAt status"
             })
 
-        // console.log("sameOrders", JSON.stringify(carriers, null, 2))
+        console.log("sameOrders", JSON.stringify(carriers, null, 2))
         // get carriers with least number of orders
         carriers = carriers.reduce((c1, c2) => {
             c1 = c1 || []
@@ -85,7 +85,7 @@ const addOrderToCarrier = async (order, role) => {
                 return [c2];
             }
         }, [])
-        // console.log("sameOrders2", JSON.stringify(carriers, null, 2))
+        console.log("sameOrders2", JSON.stringify(carriers, null, 2))
     }
 
     if (role == 'collector') {

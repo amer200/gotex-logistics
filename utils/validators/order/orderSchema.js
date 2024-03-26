@@ -1,4 +1,4 @@
-const ajvValidate = require('./ajvValidate')
+const ajvValidate = require('../ajvValidate')
 
 const orderSchema = {
     type: "object",
