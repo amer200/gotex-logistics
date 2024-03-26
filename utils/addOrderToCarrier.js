@@ -9,24 +9,31 @@ const Carrier = require('../models/carrier');
  * this month (any status of orders that assigned to him)
  */
 
-const addOrderToCollector = async (order) => {
+const addOrderToCarrier = async (order, role) => {
     const now = new Date();
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 2);
     const thisMonthLastDay = new Date(thisMonth.getFullYear(), thisMonth.getMonth() + 1, 1);
+
+    let orderStatusArr = []
+    if (role == 'collector') {
+        orderStatusArr = ['pending', 'pick to store', 'delivered by collector']
+    } else if (role == 'receiver') {
+        orderStatusArr = ['in store', 'delivered by receiver']
+    }
 
     /**
      * @Des : return carriers in the same city as the sendercity that have 
      * the same number of 'pick to store' orders in this month
      */
     let carriers = await Carrier.find({
-        role: "collector",
+        role,
         area: { $in: [order.sendercity] },
     })
         .populate({
             path: 'orders',
             /**@Desc Notice that: if it doesn't match any of docs, it returns orders=null */
             match: {
-                status: { $in: ['pending', 'pick to store', 'delivered by collector'] },
+                status: { $in: orderStatusArr },
                 createdAt: {
                     $gte: thisMonth,
                     $lte: thisMonthLastDay
@@ -52,7 +59,7 @@ const addOrderToCollector = async (order) => {
 
     if (carriers.length > 1) {
         carriers = await Carrier.find({
-            role: "collector",
+            role,
             area: { $in: [order.sendercity] },
         })
             .populate({
@@ -81,12 +88,14 @@ const addOrderToCollector = async (order) => {
         // console.log("sameOrders2", JSON.stringify(carriers, null, 2))
     }
 
-    order.pickedby = {
-        id: carriers[0]._id,
-        role: carriers[0].role
+    if (role == 'collector') {
+        order.pickedby = carriers[0]._id
+    } else if (role == 'receiver') {
+        order.deliveredby = carriers[0]._id
     }
+
     carriers[0].orders.push(order._id)
     await Promise.all([order.save(), carriers[0].save()])
 }
 
-module.exports = addOrderToCollector
+module.exports = addOrderToCarrier
