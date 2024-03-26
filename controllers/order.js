@@ -48,12 +48,16 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
 exports.getAllOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find()
+        .sort({ updatedAt: -1 })
         .populate([
             {
                 path: 'pickedby',
                 select: "_id firstName lastName email mobile"
             }, {
                 path: 'deliveredby',
+                select: "_id firstName lastName email mobile"
+            }, {
+                path: 'storekeeeper',
                 select: "_id firstName lastName email mobile"
             }
         ]);
@@ -75,18 +79,21 @@ exports.getOrder = asyncHandler(async (req, res) => {
 exports.getUserOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
     const orders = await Order.find({ createdby: userId })
+        .sort({ createdAt: -1 })
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
 exports.getCollectorOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
     const orders = await Order.find({ pickedby: userId })
+        .sort({ createdAt: -1 })
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
 exports.getReceiverOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
     const orders = await Order.find({ deliveredby: userId })
+        .sort({ createdAt: -1 })
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
