@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const StoreKeeper = require("../models/storekeeper");
 const sendEmail = require("../utils/sendEmail");
 const Order = require('../models/order');
+const addOrderToCarrier = require('../utils/addOrderToCarrier');
 const salt = 10;
 const mailSubject = "Verify your gotex account"
 exports.registerStoreKeeper = asyncHandler(async (req, res) => {
@@ -113,6 +114,9 @@ exports.addOrderToStore = asyncHandler(async (req, res) => {
     const order = await Order.findOneAndUpdate({ billcode: billcode }, { status: "in store", storekeeeper: req.id }, {
         new: true
     });
+
+    await addOrderToCarrier(order, 'receiver')
+
     res.status(200).json({ msg: 'ok', data: order })
 })
 
