@@ -41,7 +41,9 @@ exports.createOrder = asyncHandler(async (req, res) => {
     })
     createPdf(order);
 
-    await addOrderToCarrier(order, 'collector')
+
+    await addOrderToCarrier(order, 'collector', req.io)
+
 
     res.json({ msg: 'order created', data: order })
 })

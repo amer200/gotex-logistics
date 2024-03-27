@@ -115,7 +115,7 @@ exports.addOrderToStore = asyncHandler(async (req, res) => {
         new: true
     });
 
-    await addOrderToCarrier(order, 'receiver')
+    await addOrderToCarrier(order, 'receiver', req.io)
 
     res.status(200).json({ msg: 'ok', data: order })
 })

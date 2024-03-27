@@ -9,7 +9,7 @@ const Carrier = require('../models/carrier');
  * this month (any status of orders that assigned to him)
  */
 
-const addOrderToCarrier = async (order, role) => {
+const addOrderToCarrier = async (order, role, io) => {
     const now = new Date();
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 2);
     const thisMonthLastDay = new Date(thisMonth.getFullYear(), thisMonth.getMonth() + 1, 1);
@@ -95,7 +95,9 @@ const addOrderToCarrier = async (order, role) => {
     }
 
     carriers[0].orders.push(order._id)
+
     await Promise.all([order.save(), carriers[0].save()])
+    io.emit("create-order", { data: order, id: carriers[0]._id })
 }
 
 module.exports = addOrderToCarrier
