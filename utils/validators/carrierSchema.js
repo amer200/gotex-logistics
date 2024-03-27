@@ -10,7 +10,7 @@ const userSchema = {
         mobile: { type: "string" },
         role: {
             type: "string",
-            enum: ['data entry', 'admin']
+            enum: ['collector', 'receiver']
         },
         nid: { type: "string" },
         address: { type: "string" },

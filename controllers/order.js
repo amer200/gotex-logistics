@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler')
 const Order = require("../models/order");
 const { createPdf } = require("../utils/createPdf");
+const addOrderToCarrier = require('../utils/addOrderToCarrier');
 
 
 exports.createOrder = asyncHandler(async (req, res) => {
@@ -13,13 +14,15 @@ exports.createOrder = asyncHandler(async (req, res) => {
         senderaddress,
         sendercity,
         senderphone,
-        createdby,
         paytype,
         price,
         weight,
         pieces,
         description
     } = req.body;
+
+    const createdby = req.user.id
+
     const order = await Order.create({
         pieces,
         recivername,
@@ -38,11 +41,26 @@ exports.createOrder = asyncHandler(async (req, res) => {
     })
     createPdf(order);
 
+    await addOrderToCarrier(order, 'collector')
+
     res.json({ msg: 'order created', data: order })
 })
 
 exports.getAllOrders = asyncHandler(async (req, res) => {
     const orders = await Order.find()
+        .sort({ updatedAt: -1 })
+        .populate([
+            {
+                path: 'pickedby',
+                select: "_id firstName lastName email mobile"
+            }, {
+                path: 'deliveredby',
+                select: "_id firstName lastName email mobile"
+            }, {
+                path: 'storekeeeper',
+                select: "_id firstName lastName email mobile"
+            }
+        ]);
 
     res.status(200).json({
         result: orders.length,
@@ -56,4 +74,54 @@ exports.getOrder = asyncHandler(async (req, res) => {
     res.status(200).json({
         url: `upload/${url.ordernumber}.pdf`
     })
+})
+
+exports.getUserOrders = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const orders = await Order.find({ createdby: userId })
+        .sort({ createdAt: -1 })
+
+    res.status(200).json({ msg: 'ok', data: orders })
+})
+exports.getCollectorOrders = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const orders = await Order.find({ pickedby: userId })
+        .sort({ createdAt: -1 })
+
+    res.status(200).json({ msg: 'ok', data: orders })
+})
+exports.getReceiverOrders = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const orders = await Order.find({ deliveredby: userId })
+        .sort({ createdAt: -1 })
+
+    res.status(200).json({ msg: 'ok', data: orders })
+})
+
+
+exports.changeStatusByCollector = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const { orderId, status } = req.body
+
+    const order = await Order.findOneAndUpdate({ _id: orderId, pickedby: userId }, { status }, {
+        new: true
+    });
+    if (!order) {
+        return res.status(404).json({ msg: "Can't change this order status" })
+    }
+
+    res.status(200).json({ msg: 'ok', data: order })
+})
+exports.changeStatusByReceiver = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const { orderId, status } = req.body
+
+    const order = await Order.findOneAndUpdate({ _id: orderId, deliveredby: userId }, { status }, {
+        new: true
+    });
+    if (!order) {
+        return res.status(404).json({ msg: "Can't change this order status" })
+    }
+
+    res.status(200).json({ msg: 'ok', data: order })
 })

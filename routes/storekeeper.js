@@ -1,6 +1,6 @@
 const express = require("express");
 const routes = express.Router();
-const authStoreKeeper = require('../middlewares/Auth')
+const isAuth = require("../middlewares/isAuth");
 const { registerStoreKeeper, getAllStoreKeepers, setPasswordFirstTime, resendVerifyEmail, login, addOrderToStore } = require("../controllers/storekeeper");
 
 routes.post('/register', registerStoreKeeper);
@@ -9,7 +9,7 @@ routes.get('/', getAllStoreKeepers);
 
 routes.post('/set-password/:id', setPasswordFirstTime);
 routes.post('/login', login);
-routes.patch('/add-order-store/:billcode', authStoreKeeper(), addOrderToStore);
+routes.patch('/add-order-store/:billcode', isAuth('storekeeper'), addOrderToStore);
 
 
 

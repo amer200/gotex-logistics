@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const orderSchema = mongoose.Schema({
+const orderSchema = new mongoose.Schema({
     recivername: {
         type: String,
         required: true
@@ -44,11 +44,21 @@ const orderSchema = mongoose.Schema({
     itemdetails: Object,
     storekeeeper: { type: mongoose.Schema.Types.ObjectId, ref: 'Storekeeper' },
     pickedby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
+    deliveredby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
     billcode: String,
     canceldescription: String,
     status: {
         type: String,
-        enum: ['pending', 'pick to store', 'delivered', 'canceled', 'in store', 'pick to client'],
+        enum: [
+            'pending',
+            'pick to store', // collector picked it
+            'delivered by collector',
+            'in store',
+            'pick to client', // receiver picked it
+            'delivered by receiver',
+            'received',
+            'canceled'
+        ],
         default: 'pending'
     }
 }, { versionKey: false, strict: false, timestamps: true })

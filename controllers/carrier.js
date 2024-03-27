@@ -9,8 +9,9 @@ const mailSubject = "Verify your gotex account"
 
 
 exports.registerCarrier = asyncHandler(async (req, res) => {
+    const { role } = req.query
     let { firstName, lastName, email, mobile, nid, city, address, area } = req.body;
-    console.log(req.files)
+
     let photo = ''
     let papers = []
     if (req.files) {
@@ -41,6 +42,7 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
         photo,
         papers,
         area,
+        role
     })
 
     const response = await sendEmail(carrier.email, carrier._id, '', "/../views/carrierVerifyEmail.ejs", mailSubject)
@@ -77,11 +79,11 @@ exports.setPasswordFirstTime = asyncHandler(async (req, res) => {
     if (!carrier) {
         return res.status(404).json({ msg: "Email is not found" })
     }
-    if (carrier.verified) {
-        return res.status(400).json({ msg: "This email is already verified" })
-    }
     if (carrier.email !== email) {
         return res.status(400).json({ msg: "Wrong email" })
+    }
+    if (carrier.verified) {
+        return res.status(400).json({ msg: "This email is already verified" })
     }
 
     if (password !== confirmPassword) {
