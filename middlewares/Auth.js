@@ -15,7 +15,6 @@ const authStoreKeeper = () => {
             }
             req.id = user.id
             next();
-
         })
     }
 }
