@@ -1,8 +1,16 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const bwipjs = require('bwip-js');
+
+// Create a new PDF document
+
+
 
 exports.createPdf = (data) => {
+
+
+
     const doc = new PDFDocument();
     const width = doc.page.width;
     const height = doc.page.height;
@@ -71,14 +79,45 @@ exports.createPdf = (data) => {
 
 
     // Adjust position as needed
-    doc.fontSize(20).text(`${data.ordernumber}`, 300, 130);
-    doc.fontSize(20).text(`${data.ordernumber}`, 250, 660);
+
     doc.fontSize(20)
     doc.moveTo(startX, 680)
         .lineTo(endX, 680)
         .stroke()
     doc.fontSize(20)
         .text(`{reference id}: ${data.billcode}`, 10, height - 100);
-    doc.font("./LibreBarcode128-Regular.ttf").fontSize(90).text(`${data.ordernumber}`, 150, 600);
-    doc.font("./LibreBarcode128-Regular.ttf").fontSize(90).text(`${data.ordernumber}`, 1, 70, { align: 'right' }); doc.end();
+    const barcodeText = data.ordernumber; // Sample barcode text
+    const barcodeOptions = {
+        bcid: 'code128', // Barcode type
+        text: barcodeText,
+        scale: 3, // Scaling factor
+        height: 10, // Height of the barcode
+        includetext: true, // Include the barcode text
+        textxalign: 'center' // Text alignment
+    };
+
+    // Render the barcode onto the PDF
+    bwipjs.toBuffer(barcodeOptions, function (err, png) {
+        if (err) {
+            console.error(err);
+            return;
+        }
+
+        // Add the barcode image to the PDF
+        doc.image(png, 300, 70, {
+            fit: [250, 100], // Fit the image within the specified dimensions
+            align: 'center',
+            valign: 'center'
+        });
+        doc.image(png, 170, 580, {
+            fit: [250, 100], // Fit the image within the specified dimensions
+            align: 'center',
+            valign: 'center'
+        });
+
+        // Finalize the PDF
+        doc.end();
+    });
+    // doc.font("./LibreBarcode128-Regular.ttf").fontSize(90).text(`${data.ordernumber}`, 150, 600);
+    // doc.font("./LibreBarcode128-Regular.ttf").fontSize(90).text(`${data.ordernumber}`, 1, 70, { align: 'right' }); doc.end();
 }

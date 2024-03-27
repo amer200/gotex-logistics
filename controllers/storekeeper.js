@@ -110,8 +110,8 @@ exports.getAllStoreKeepers = asyncHandler(async (req, res) => {
     })
 })
 exports.addOrderToStore = asyncHandler(async (req, res) => {
-    const { billcode } = req.params;
-    const order = await Order.findOneAndUpdate({ billcode: billcode }, { status: "in store", storekeeeper: req.user.id }, {
+    const { ordernumber } = req.params;
+    const order = await Order.findOneAndUpdate({ ordernumber: ordernumber }, { status: "in store", storekeeeper: req.user.id }, {
         new: true
     });
 

@@ -1,5 +1,5 @@
 const Carrier = require('../models/carrier');
-
+const Notification = require('../models/notifications');
 /**
  * @Des : After creating order, we add it to a collector that:
  * - has area = sendercity and has the least number of orders to server 
@@ -10,6 +10,7 @@ const Carrier = require('../models/carrier');
  */
 
 const addOrderToCarrier = async (order, role, io) => {
+
     const now = new Date();
     const thisMonth = new Date(now.getFullYear(), now.getMonth(), 2);
     const thisMonthLastDay = new Date(thisMonth.getFullYear(), thisMonth.getMonth() + 1, 1);
@@ -97,7 +98,12 @@ const addOrderToCarrier = async (order, role, io) => {
     carriers[0].orders.push(order._id)
 
     await Promise.all([order.save(), carriers[0].save()])
-    io.emit("create-order", { data: order, id: carriers[0]._id })
+    let notification = Notification.create({ data: order, carrier: carriers[0]._id })
+
+
+    io.emit("create-order", notification)
+
+
 }
 
 module.exports = addOrderToCarrier

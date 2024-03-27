@@ -1,4 +1,6 @@
 const socketIo = require('socket.io');
+const Notifications = require('../models/notifications');
+
 function initializeSocket(server) {
     const io = socketIo(server, {
         cors: {
@@ -7,7 +9,8 @@ function initializeSocket(server) {
         }
     });
     io.on('connection', (socket) => {
-        console.log('A user connected');
+        let data = Notifications.find();
+        // socket.emit('connected', data)
         socket.on('disconnect', () => {
             console.log('User disconnected');
         });
