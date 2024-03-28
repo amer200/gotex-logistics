@@ -88,14 +88,16 @@ const addOrderToCarrier = async (order, role) => {
         console.log("sameOrders2", JSON.stringify(carriers, null, 2))
     }
 
-    if (role == 'collector') {
-        order.pickedby = carriers[0]._id
-    } else if (role == 'receiver') {
-        order.deliveredby = carriers[0]._id
-    }
+    if (carriers.length) {
+        if (role == 'collector') {
+            order.pickedby = carriers[0]._id
+        } else if (role == 'receiver') {
+            order.deliveredby = carriers[0]._id
+        }
 
-    carriers[0].orders.push(order._id)
-    await Promise.all([order.save(), carriers[0].save()])
+        carriers[0].orders.push(order._id)
+        await Promise.all([order.save(), carriers[0].save()])
+    }
 }
 
 module.exports = addOrderToCarrier
