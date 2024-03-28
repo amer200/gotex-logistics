@@ -37,7 +37,7 @@ exports.registerStoreKeeper = asyncHandler(async (req, res) => {
 exports.resendVerifyEmail = asyncHandler(async (req, res) => {
     const id = req.params.id;
 
-    const storekeeper = await Carrier.findById(id)
+    const storekeeper = await StoreKeeper.findById(id)
     if (!storekeeper) {
         return res.status(409).json({ msg: "User is not found" })
     }
