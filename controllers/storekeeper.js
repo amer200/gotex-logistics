@@ -110,12 +110,12 @@ exports.getAllStoreKeepers = asyncHandler(async (req, res) => {
     })
 })
 exports.addOrderToStore = asyncHandler(async (req, res) => {
-    const { billcode } = req.params;
-    const order = await Order.findOneAndUpdate({ billcode: billcode }, { status: "in store", storekeeeper: req.user.id }, {
+    const { ordernumber } = req.params;
+    const order = await Order.findOneAndUpdate({ ordernumber: ordernumber }, { status: "in store", storekeeeper: req.user.id }, {
         new: true
     });
 
-    await addOrderToCarrier(order, 'receiver')
+    await addOrderToCarrier(order, 'receiver', req.io)
 
     res.status(200).json({ msg: 'ok', data: order })
 })

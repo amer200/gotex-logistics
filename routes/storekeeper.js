@@ -9,7 +9,7 @@ routes.get('/', getAllStoreKeepers);
 
 routes.post('/set-password/:id', setPasswordFirstTime);
 routes.post('/login', login);
-routes.patch('/add-order-store/:billcode', isAuth('storekeeper'), addOrderToStore);
+routes.patch('/add-order-store/:ordernumber', isAuth('storekeeper'), addOrderToStore);
 
 
 
