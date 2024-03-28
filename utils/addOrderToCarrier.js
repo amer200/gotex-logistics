@@ -98,11 +98,10 @@ const addOrderToCarrier = async (order, role, io) => {
 
         carriers[0].orders.push(order._id)
         await Promise.all([order.save(), carriers[0].save()])
-
-        let notification = Notification.create({ data: order, carrier: carriers[0]._id })
-
-        io.emit("create-order", notification)
     }
+
+    let notification = Notification.create({ data: order, carrier: carriers[0]?._id })
+    io.emit("create-order", notification)
 }
 
 module.exports = addOrderToCarrier
