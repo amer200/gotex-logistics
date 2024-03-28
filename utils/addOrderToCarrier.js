@@ -101,6 +101,7 @@ const addOrderToCarrier = async (order, role, io) => {
     }
 
     let notification = Notification.create({ data: order, carrier: carriers[0]?._id })
+
     io.emit("create-order", notification)
 }
 
