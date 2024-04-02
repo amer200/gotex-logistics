@@ -15,6 +15,7 @@ const carrierRoutes = require("./routes/carrier");
 const orderRoutes = require("./routes/order");
 const storeKeeperRoutes = require("./routes/storekeeper");
 const notificationRoutes = require("./routes/notification");
+const citiesRoute = require('./routes/cities')
 
 
 dbConnection();
@@ -51,7 +52,7 @@ app.use("/carrier", carrierRoutes);
 app.use("/order", orderRoutes);
 app.use("/store-keeper", storeKeeperRoutes);
 app.use("/notifications", storeKeeperRoutes);
-
+app.use('/cities', citiesRoute);
 
 
 
