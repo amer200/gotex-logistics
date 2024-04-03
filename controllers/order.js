@@ -75,12 +75,18 @@ exports.getAllOrders = asyncHandler(async (req, res) => {
 })
 
 exports.getOrder = asyncHandler(async (req, res) => {
-    const id = req.params.id;
-    const url = await Order.findOne({ _id: id }, { ordernumber: 1, _id: 0 });
-    res.status(200).json({
-        url: `upload/${url.ordernumber}.pdf`
-    })
-})
+  const id = req.params.id;
+  
+  const url = await Order.findOne({ _id: id }, { ordernumber: 1, _id: 0 });
+
+  if (!url) {
+    return res.status(409).json({ msg: "Order is not found" });
+  }
+
+  res.status(200).json({
+    url: `upload/${url.ordernumber}.pdf`,
+  });
+});
 
 exports.getUserOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
