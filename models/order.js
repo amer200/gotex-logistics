@@ -47,6 +47,10 @@ const orderSchema = new mongoose.Schema({
     deliveredby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
     billcode: String,
     canceldescription: String,
+    isreturn: {
+        type: Boolean,
+        default: false
+    },
     status: {
         type: String,
         enum: [

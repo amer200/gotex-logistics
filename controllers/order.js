@@ -39,7 +39,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
         weight,
         description
     })
-    createPdf(order);
+    createPdf(order, false);
 
 
     await addOrderToCarrier(order, 'collector', req.io)
@@ -134,6 +134,17 @@ exports.changeStatusByReceiver = asyncHandler(async (req, res) => {
     if (!order) {
         return res.status(404).json({ msg: "Can't change this order status" })
     }
+
+    res.status(200).json({ msg: 'ok', data: order })
+})
+exports.returnOrder = asyncHandler(async (req, res) => {
+    const { orderid } = req.params;
+    const order = await Order.findByIdAndUpdate({ orderid }, { isreturn: true }, {
+        new: true
+    });
+    createPdf(order, true);
+
+
 
     res.status(200).json({ msg: 'ok', data: order })
 })

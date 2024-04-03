@@ -2,7 +2,7 @@ const express = require("express");
 const validate = require("../middlewares/validate");
 const routes = express.Router();
 const isAuth = require("../middlewares/isAuth");
-const { createOrder, getAllOrders, getOrder, getUserOrders, getCarrierOrders, getCollectorOrders, getReceiverOrders, changeStatusByCollector, changeStatusByReceiver, getStorekeeperOrders } = require("../controllers/order");
+const { createOrder, getAllOrders, getOrder, returnOrder, getUserOrders, getCarrierOrders, getCollectorOrders, getReceiverOrders, changeStatusByCollector, changeStatusByReceiver, getStorekeeperOrders } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const changeStatusCollectorSchema = require("../utils/validators/order/changeStatusCollectorSchema");
 const changeStatusReceiverSchema = require("../utils/validators/order/changeStatusReceiverSchema");
@@ -13,6 +13,7 @@ routes.post('/create-order',
     validate(orderSchema),
     createOrder);
 routes.get('/getorder/:id', getOrder);
+routes.put('/return-order/:orderid', returnOrder);
 
 routes.get('/get-user-orders', isAuth('data entry'), getUserOrders);
 routes.get('/get-collector-orders', isAuth('collector'), getCollectorOrders);

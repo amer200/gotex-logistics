@@ -17,7 +17,7 @@ routes.post('/set-password/:userId', setPasswordFirstTime);
 routes.post('/login', login);
 
 routes.post("/send-forget-password-email", forgetPasswordEmail);
-routes.post("/verify-forget-password-code", isVerifiedCodeToken(User), verifyForgetPasswordCode);
+routes.post("/verify-forget-password-code", isVerifiedCodeToken(Tracker), verifyForgetPasswordCode);
 routes.post("/set-new-password", isVerifiedCodeToken(Tracker), setNewPassword);
 
 
