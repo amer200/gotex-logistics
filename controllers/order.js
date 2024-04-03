@@ -63,7 +63,7 @@ exports.getAllOrders = asyncHandler(async (req, res) => {
                 path: 'deliveredby',
                 select: "_id firstName lastName email mobile"
             }, {
-                path: 'storekeeeper',
+                path: 'storekeeper',
                 select: "_id firstName lastName email mobile"
             }
         ]);
