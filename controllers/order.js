@@ -105,7 +105,7 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
 })
 exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
-    const orders = await Order.find({ storekeeeper: userId })
+    const orders = await Order.find({ storekeeper: userId })
         .sort({ updatedAt: -1 })
 
     res.status(200).json({ msg: 'ok', data: orders })
