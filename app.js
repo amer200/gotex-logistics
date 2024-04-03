@@ -14,6 +14,8 @@ const userRoutes = require("./routes/user");
 const carrierRoutes = require("./routes/carrier");
 const orderRoutes = require("./routes/order");
 const storeKeeperRoutes = require("./routes/storekeeper");
+const trackerRoutes = require("./routes/tracker");
+
 const notificationRoutes = require("./routes/notification");
 const citiesRoute = require('./routes/cities')
 
@@ -54,7 +56,8 @@ app.use("/user", userRoutes);
 app.use("/carrier", carrierRoutes);
 app.use("/order", orderRoutes);
 app.use("/store-keeper", storeKeeperRoutes);
-app.use("/notifications", storeKeeperRoutes);
+app.use("/tracker", trackerRoutes);
+app.use("/notifications", notificationRoutes);
 app.use('/cities', citiesRoute);
 
 

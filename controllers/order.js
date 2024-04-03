@@ -38,7 +38,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     weight,
     description,
   });
-  createPdf(order);
+  createPdf(order, false);
 
   await addOrderToCarrier(order, "collector", req.io);
 
@@ -179,4 +179,18 @@ exports.trackOrder = asyncHandler(async (req, res) => {
     ]);
 
   res.status(200).json({ data: order });
+});
+
+exports.returnOrder = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const order = await Order.findOneAndUpdate(
+    { _id: id },
+    { isreturn: true },
+    {
+      new: true,
+    }
+  );
+  createPdf(order, true);
+
+  res.status(200).json({ msg: "ok", data: order });
 });
