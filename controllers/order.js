@@ -178,6 +178,10 @@ exports.trackOrder = asyncHandler(async (req, res) => {
       },
     ]);
 
+  if (!order) {
+    return res.status(409).json({ msg: "Order is not found" });
+  }
+
   res.status(200).json({ data: order });
 });
 
@@ -191,6 +195,10 @@ exports.returnOrder = asyncHandler(async (req, res) => {
     }
   );
   createPdf(order, true);
+
+  if (!order) {
+    return res.status(409).json({ msg: "Order is not found" });
+  }
 
   res.status(200).json({ msg: "ok", data: order });
 });
