@@ -53,13 +53,17 @@ exports.getAllOrders = asyncHandler(async (req, res) => {
         .sort({ updatedAt: -1 })
         .populate([
             {
+                path: 'createdby',
+                select: "_id firstName lastName email mobile"
+            },
+            {
                 path: 'pickedby',
                 select: "_id firstName lastName email mobile"
             }, {
                 path: 'deliveredby',
                 select: "_id firstName lastName email mobile"
             }, {
-                path: 'storekeeeper',
+                path: 'storekeeper',
                 select: "_id firstName lastName email mobile"
             }
         ]);
@@ -88,18 +92,24 @@ exports.getUserOrders = asyncHandler(async (req, res) => {
 exports.getCollectorOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
     const orders = await Order.find({ pickedby: userId })
-        .sort({ createdAt: -1 })
+        .sort({ updatedAt: -1 })
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
 exports.getReceiverOrders = asyncHandler(async (req, res) => {
     const userId = req.user.id
     const orders = await Order.find({ deliveredby: userId })
-        .sort({ createdAt: -1 })
+        .sort({ updatedAt: -1 })
 
     res.status(200).json({ msg: 'ok', data: orders })
 })
+exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
+    const userId = req.user.id
+    const orders = await Order.find({ storekeeper: userId })
+        .sort({ updatedAt: -1 })
 
+    res.status(200).json({ msg: 'ok', data: orders })
+})
 
 exports.changeStatusByCollector = asyncHandler(async (req, res) => {
     const userId = req.user.id

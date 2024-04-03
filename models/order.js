@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema({
     weight: Number,
     location: Object,
     itemdetails: Object,
-    storekeeeper: { type: mongoose.Schema.Types.ObjectId, ref: 'Storekeeper' },
+    storekeeper: { type: mongoose.Schema.Types.ObjectId, ref: 'Storekeeper' },
     pickedby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
     deliveredby: { type: mongoose.Schema.Types.ObjectId, ref: 'Carrier' },
     billcode: String,
