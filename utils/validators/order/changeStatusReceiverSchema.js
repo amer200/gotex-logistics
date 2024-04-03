@@ -9,6 +9,9 @@ const changeStatusReceiverSchema = {
             type: "string",
             enum: ['in store', 'pick to client', 'delivered by receiver', 'received']
         },
+        images: {
+            type: "array"
+        },
     },
     required: ["orderId", "status"],
 
