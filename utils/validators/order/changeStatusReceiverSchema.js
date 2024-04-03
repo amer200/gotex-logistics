@@ -1,21 +1,27 @@
-const ajvValidate = require('../ajvValidate')
+const ajvValidate = require("../ajvValidate");
 
 /** Validation on order statuses that are allowed to receiver to change */
 const changeStatusReceiverSchema = {
-    type: "object",
-    properties: {
-        orderId: { type: "string" },
-        status: {
-            type: "string",
-            enum: ['in store', 'pick to client', 'delivered by receiver', 'received']
-        },
-        images: {
-            type: "array"
-        },
+  type: "object",
+  properties: {
+    orderId: { type: "string" },
+    status: {
+      type: "string",
+      enum: [
+        "in store",
+        "pick to client",
+        "delivered by receiver",
+        "received",
+        "canceled",
+      ],
     },
-    required: ["orderId", "status"],
+    images: {
+      type: "array",
+    },
+  },
+  required: ["orderId", "status"],
 
-    additionalProperties: false
-}
+  additionalProperties: false,
+};
 
-module.exports = ajvValidate.compile(changeStatusReceiverSchema)
+module.exports = ajvValidate.compile(changeStatusReceiverSchema);

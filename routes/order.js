@@ -48,7 +48,7 @@ routes.put(
 routes.put(
   "/change-status-by-receiver",
   isAuth("receiver"),
-  // validate(changeStatusReceiverSchema),
+  validate(changeStatusReceiverSchema),
   changeStatusByReceiver
 );
 
