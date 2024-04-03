@@ -138,8 +138,8 @@ exports.changeStatusByReceiver = asyncHandler(async (req, res) => {
     res.status(200).json({ msg: 'ok', data: order })
 })
 exports.returnOrder = asyncHandler(async (req, res) => {
-    const { orderid } = req.params;
-    const order = await Order.findByIdAndUpdate({ orderid }, { isreturn: true }, {
+    const { id } = req.params;
+    const order = await Order.findOneAndUpdate({ _id: id }, { isreturn: true }, {
         new: true
     });
     createPdf(order, true);

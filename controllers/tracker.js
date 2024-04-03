@@ -32,10 +32,10 @@ exports.registerTracker = asyncHandler(async (req, res) => {
     const response = await sendEmail(tracker.email, tracker._id, '', "/../views/userVerifyEmail.ejs", mailSubject)
     if (response && response.error) {
         console.error(response.error);
-        return res.status(500).json({ msg: 'Failed to send email' });
+        res.status(500).json({ msg: 'Failed to send email' });
     }
 
-    return res.status(200).json({ msg: 'Email sent successfully' });
+    res.status(200).json({ msg: 'Email sent successfully' });
 })
 
 exports.resendVerifyEmail = asyncHandler(async (req, res) => {
@@ -123,7 +123,7 @@ exports.getAllOrders = asyncHandler(async (req, res) => {
                 path: 'deliveredby',
                 select: "_id firstName lastName email mobile"
             }, {
-                path: 'storekeeeper',
+                path: 'storekeeper',
                 select: "_id firstName lastName email mobile"
             }
         ]);
