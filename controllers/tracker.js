@@ -25,8 +25,7 @@ exports.registerTracker = asyncHandler(async (req, res) => {
         mobile,
         nid,
         city,
-        address,
-        role: 'data entry',
+        address
     })
 
     const response = await sendEmail(tracker.email, tracker._id, '', "/../views/userVerifyEmail.ejs", mailSubject)
