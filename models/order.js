@@ -64,7 +64,8 @@ const orderSchema = new mongoose.Schema({
             'canceled'
         ],
         default: 'pending'
-    }
+    },
+    images: [String]
 }, { versionKey: false, strict: false, timestamps: true })
 orderSchema.pre('save', function (next) {
     if (this.isNew) {

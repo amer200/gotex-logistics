@@ -13,3 +13,4 @@ const storage = (path) => {
 }
 
 exports.uploadCarrierData = multer({ storage: storage('public/carrier') })
+exports.uploadOrderData = multer({ storage: storage('public/order') })
