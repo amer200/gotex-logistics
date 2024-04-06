@@ -10,7 +10,6 @@ const trackerSchema = new mongoose.Schema({
     mobile: String,
     role: {
         type: String,
-
         default: 'tracker',
     },
     nid: String,

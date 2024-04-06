@@ -13,7 +13,7 @@ routes.post('/resend-verify-email/:id', isAuth('admin'), resendVerifyEmail);
 routes.get('/', isAuth('admin'), getAllTrackers);
 routes.get('/all-orders', isAuth('tracker'), getAllOrders);
 
-routes.post('/set-password/:userId', setPasswordFirstTime);
+routes.post('/set-password/:trackerId', setPasswordFirstTime);
 routes.post('/login', login);
 
 routes.post("/send-forget-password-email", forgetPasswordEmail);
