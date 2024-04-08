@@ -26,7 +26,7 @@ exports.registerStoreKeeper = asyncHandler(async (req, res) => {
         address,
     })
 
-    const response = await sendEmail(storekeeper.email, storekeeper._id, '', "/../views/carrierVerifyEmail.ejs", mailSubject)
+    const response = await sendEmail(storekeeper.email, storekeeper._id, '', "/../views/storeKeeperVerifyEmail.ejs", mailSubject)
     if (response && response.error) {
         console.error(response.error);
         return res.status(500).json({ msg: 'Failed to send email' });

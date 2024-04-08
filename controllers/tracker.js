@@ -45,7 +45,7 @@ exports.resendVerifyEmail = asyncHandler(async (req, res) => {
         return res.status(409).json({ msg: "User is not found" })
     }
 
-    const response = await sendEmail(tracker.email, tracker._id, '', "/../views/userVerifyEmail.ejs", mailSubject)
+    const response = await sendEmail(tracker.email, tracker._id, '', "/../views/trackerVerifyEmail.ejs", mailSubject)
     if (response && response.error) {
         console.error(response.error);
         return res.status(500).json({ msg: 'Failed to send email' });
