@@ -12,6 +12,8 @@ exports.createPdf = (data, isreturn) => {
 
 
     const doc = new PDFDocument();
+    const customFont = fs.readFileSync(`./Amiri-Regular.ttf`);
+
     const width = doc.page.width;
     const height = doc.page.height;
     doc.lineWidth(2); // You can adjust the thickness as needed
@@ -36,51 +38,7 @@ exports.createPdf = (data, isreturn) => {
     doc.moveTo(startX, 160)
         .lineTo(endX, 160)
         .stroke();
-    // Add barcode with border
-
-
-    doc.fontSize(20)
-        .text('From:', 10, 185)
-        .text(isreturn == true ? data.recivername : data.sendername, 20, 205)
-        .text(isreturn == true ? data.recivercity : data.sendercity, 20, 225)
-        .text(isreturn == true ? data.reciveraddress : data.senderaddress, 20, 245)
-        .text(isreturn == true ? data.reciverphone : data.senderphone, 20, 265);
-    doc.moveTo(startX, 300)
-        .lineTo(endX, 300)
-        .stroke();
-    // Add Receiver details with border
-    doc.fontSize(20)
-        .text('To:', 10, 320)
-        .text(isreturn == true ? data.sendername : data.recivername, 20, 340)
-        .text(isreturn == true ? data.sendercity : data.recivercity, 20, 360)
-        .text(isreturn == true ? data.senderaddress : data.reciveraddress, 20, 380)
-        .text(isreturn == true ? data.senderphone : data.reciverphone, 20, 400);
-    doc.moveTo(startX, 430)
-        .lineTo(endX, 430)
-        .stroke();
-
-    doc.fontSize(20)
-        .text(`Weight: ${data.weight}`, 50, 450)
-        .text(`Pieces:  ${data.pieces}`, 250, 450);
-    doc.moveTo(startX, 480)
-        .lineTo(endX, 480)
-        .stroke()
-    // Add Description with border
-    doc.fontSize(20)
-        .text(`Description: ${data.description}`, 10, 500);
-    doc.moveTo(startX, 530)
-        .lineTo(endX, 530)
-        .stroke()
-    // Add CC with border
-    doc.fontSize(30)
-        .text(`Price : ${data.price} SAR`, 50, 550, { align: 'center' });
-
-
-
-
-    // Adjust position as needed
-
-    doc.fontSize(20)
+    // doc.fontSize(20)
     doc.moveTo(startX, 680)
         .lineTo(endX, 680)
         .stroke()
@@ -114,10 +72,66 @@ exports.createPdf = (data, isreturn) => {
             align: 'center',
             valign: 'center'
         });
+        doc.registerFont(`Amiri-Regular`, customFont);
+        doc.fontSize(20)
+            .text('From:', 10, 185)
+            .font(`Amiri-Regular`)
+            .text(isreturn == true ? data.recivername : data.sendername, 20, 205)
+            .text(isreturn == true ? data.recivercity : data.sendercity, 20, 225)
+            .text(isreturn == true ? data.reciveraddress : data.senderaddress, 20, 245)
+            .text(isreturn == true ? data.reciverphone : data.senderphone, 20, 265);
+        doc.moveTo(startX, 300)
+            .lineTo(endX, 300)
+            .stroke();
+        // Add Receiver details with border
+        doc.fontSize(20)
+            .text('To:', 10, 320)
+            .font(`Amiri-Regular`).text(isreturn == true ? data.sendername : data.recivername, 20, 340)
+            .text(isreturn == true ? data.sendercity : data.recivercity, 20, 360)
+            .text(isreturn == true ? data.senderaddress : data.reciveraddress, 20, 380)
+            .text(isreturn == true ? data.senderphone : data.reciverphone, 20, 400);
+        doc.moveTo(startX, 430)
+            .lineTo(endX, 430)
+            .stroke();
 
-        // Finalize the PDF
+        doc.fontSize(20)
+            .text(`Weight: ${data.weight}`, 50, 450)
+            .text(`Pieces:  ${data.pieces}`, 250, 450);
+        doc.moveTo(startX, 480)
+            .lineTo(endX, 480)
+            .stroke()
+        // Add Description with border
+        doc.fontSize(20)
+            .text(`Description: ${data.description}`, 10, 500);
+        doc.moveTo(startX, 530)
+            .lineTo(endX, 530)
+            .stroke()
+        // Add CC with border
+        if (data.paytype == "cc") {
+            doc.fontSize(20)
+                .text(`PayType: CC`, 10, 533);
+            doc.moveTo(startX, 560)
+                .lineTo(endX, 560)
+                .stroke()
+        } else {
+            doc.fontSize(30)
+                .text(`Price : ${data.price} SAR`, 50, 550, { align: 'center' });
+
+        }
         doc.end();
+
     });
+    // Add barcode with border
+
+
+
+
+
+    // Adjust position as needed
+
+
+
+
     // doc.font("./LibreBarcode128-Regular.ttf").fontSize(90).text(`${data.ordernumber}`, 150, 600);
     // doc.font("./LibreBarcode128-Regular.ttf").fontSize(90).text(`${data.ordernumber}`, 1, 70, { align: 'right' }); doc.end();
 }
