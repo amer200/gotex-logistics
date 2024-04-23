@@ -450,8 +450,8 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
     data: ordersPerPage,
   });
 });
-exports.addOrderToCarrier = asyncHandler(async (req, res) => {
-  const { orderId, carrierId } = req.params;
+exports.addOrderToCarrierByAdmin = asyncHandler(async (req, res) => {
+  const { orderId, carrierId } = req.body;
   const { carrierType = "collector" } = req.query;
   console.log(carrierType);
   const order = await Order.findById(orderId);

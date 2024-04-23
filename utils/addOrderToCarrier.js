@@ -102,7 +102,7 @@ const addOrderToCarrier = async (order, role, io) => {
     await Promise.all([order.save(), carriers[0].save()]);
   }
 
-  let notification = Notification.create({
+  let notification = await Notification.create({
     data: order,
     carrier: carriers[0]?._id,
   });
