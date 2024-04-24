@@ -108,30 +108,28 @@ exports.createPdf = (data, isreturn) => {
             .stroke()
         // Add CC with border
         if (data.paytype == "cc") {
+            doc.moveTo(390, 160)
+                .lineTo(390, 300)
+                .lineWidth(2)
+                .stroke();
             doc.fontSize(20)
-                .text(`PayType: CC`, 10, 533);
-            doc.moveTo(startX, 560)
-                .lineTo(endX, 560)
-                .stroke()
-        } else {
-            doc.fontSize(30)
-                .text(`Price : ${data.price} SAR`, 50, 550, { align: 'center' });
+                .text(`PayType: CC`, 400, 185);
 
+        } else {
+            doc.moveTo(390, 160)
+                .lineTo(390, 300)
+                .lineWidth(2)
+                .stroke();
+            doc.fontSize(20)
+                .text(`PayType: Cod`, 400, 185);
+            doc.fontSize(18)
+                .text(`Price :${data.price} SAR`, 400, 210);
         }
         doc.end();
 
     });
     // Add barcode with border
-
-
-
-
-
     // Adjust position as needed
-
-
-
-
     // doc.font("./LibreBarcode128-Regular.ttf").fontSize(90).text(`${data.ordernumber}`, 150, 600);
     // doc.font("./LibreBarcode128-Regular.ttf").fontSize(90).text(`${data.ordernumber}`, 1, 70, { align: 'right' }); doc.end();
 }
