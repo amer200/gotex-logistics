@@ -15,8 +15,9 @@ const {
   changeStatusByReceiver,
   getStorekeeperOrders,
   trackOrder,
-  addOrderToCarrierByAdmin,
+  addOrderToCollector,
   getOrdersWithoutCarriers,
+  addOrderToReceiver,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const changeStatusCollectorSchema = require("../utils/validators/order/changeStatusCollectorSchema");
@@ -61,6 +62,11 @@ routes.get(
   isAuth("admin"),
   getOrdersWithoutCarriers
 );
-routes.put("/add-order-to-carrier", isAuth("admin"), addOrderToCarrierByAdmin);
+routes.put("/add-order-to-collector", isAuth("admin"), addOrderToCollector);
+routes.put(
+  "/add-order-to-receiver",
+  isAuth(["admin", "storekeeper"]),
+  addOrderToReceiver
+);
 
 module.exports = routes;

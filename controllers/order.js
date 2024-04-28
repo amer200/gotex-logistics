@@ -450,24 +450,55 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
     data: ordersPerPage,
   });
 });
-exports.addOrderToCarrierByAdmin = asyncHandler(async (req, res) => {
+exports.addOrderToCollector = asyncHandler(async (req, res) => {
   const { orderId, carrierId } = req.body;
-  const { carrierType = "collector" } = req.query;
-  console.log(carrierType);
   const order = await Order.findById(orderId);
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
   }
 
-  const carrier = await Carrier.findOne({ _id: carrierId, role: carrierType });
+  const carrier = await Carrier.findOne({ _id: carrierId, role: "collector" });
   if (!carrier) {
-    return res.status(404).json({ msg: "Carrier is not found" });
+    return res.status(404).json({ msg: "Collector is not found" });
   }
 
-  if (carrierType == "collector") {
+  if (order.status == "pending") {
     order.pickedby = carrierId;
-  } else if (carrierType == "receiver") {
+  } else {
+    return res.status(404).json({
+      msg: `Order status is "${order.status}", you can't add a collector`,
+    });
+  }
+
+  await order.save();
+
+  let notification = Notification.create({
+    data: order,
+    carrier: carrier._id,
+  });
+
+  req.io.emit("create-order", notification);
+
+  res.json({ msg: "ok", data: order });
+});
+exports.addOrderToReceiver = asyncHandler(async (req, res) => {
+  const { orderId, carrierId } = req.body;
+  const order = await Order.findById(orderId);
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+
+  const carrier = await Carrier.findOne({ _id: carrierId, role: "receiver" });
+  if (!carrier) {
+    return res.status(404).json({ msg: "Receiver is not found" });
+  }
+
+  if (order.status == "in store") {
     order.deliveredby = carrierId;
+  } else {
+    return res.status(404).json({
+      msg: `Order status is "${order.status}", you can't add a receiver`,
+    });
   }
   await order.save();
 
