@@ -135,7 +135,14 @@ exports.login = asyncHandler(async (req, res, next) => {
 });
 
 exports.getAllCarriers = asyncHandler(async (req, res) => {
-  const carriers = await Carrier.find();
+  const { role = "" } = req.query;
+
+  let carriers = {};
+  if (!role) {
+    carriers = await Carrier.find();
+  } else {
+    carriers = await Carrier.find({ role });
+  }
 
   res.status(200).json({
     result: carriers.length,
