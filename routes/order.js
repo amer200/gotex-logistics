@@ -11,17 +11,22 @@ const {
   getCarrierOrders,
   getCollectorOrders,
   getReceiverOrders,
-  changeStatusByCollector,
-  changeStatusByReceiver,
   getStorekeeperOrders,
   trackOrder,
   addOrderToCollector,
   getOrdersWithoutCarriers,
   addOrderToReceiver,
+  pickedByCollector,
+  deliveredByCollector,
+  pickedByReceiver,
+  cancelOrderByReceiver,
+  orderInStoreRequest,
+  inStoreRequestStatus,
+  deliveredByReceiver,
+  orderReceived,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
-const changeStatusCollectorSchema = require("../utils/validators/order/changeStatusCollectorSchema");
-const changeStatusReceiverSchema = require("../utils/validators/order/changeStatusReceiverSchema");
+const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
 
 routes.get("/get-all", isAuth("admin"), getAllOrders);
 routes.post(
@@ -42,18 +47,31 @@ routes.get(
   getStorekeeperOrders
 );
 
+//#region change order status
+routes.put("/picked-by-collector", isAuth("collector"), pickedByCollector);
 routes.put(
-  "/change-status-by-collector",
+  "/delivered-by-collector",
   isAuth("collector"),
-  validate(changeStatusCollectorSchema),
-  changeStatusByCollector
+  deliveredByCollector
 );
+routes.put("/in-store-request", isAuth("collector"), orderInStoreRequest);
+
 routes.put(
-  "/change-status-by-receiver",
-  isAuth("receiver"),
-  validate(changeStatusReceiverSchema),
-  changeStatusByReceiver
+  "/in-store-request-status",
+  isAuth("storekeeper"),
+  validate(inStoreRequestStatusSchema),
+  inStoreRequestStatus
 );
+
+routes.put("/picked-by-receiver", isAuth("receiver"), pickedByReceiver);
+routes.put("/delivered-by-receiver", isAuth("receiver"), deliveredByReceiver);
+routes.put("/order-received", isAuth("receiver"), orderReceived);
+routes.put(
+  "/cancel-order-by-receiver",
+  isAuth("receiver"),
+  cancelOrderByReceiver
+);
+//#endregion change order status
 
 routes.get("/track-order/:ordernumber", trackOrder);
 

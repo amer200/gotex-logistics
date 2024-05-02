@@ -8,6 +8,8 @@ const {
   countDocsAfterFiltering,
   createPaginationObj,
 } = require("../utils/pagination");
+const Storekeeper = require("../models/storekeeper");
+const changeOrderStatus = require("../utils/changeOrderStatus");
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const {
@@ -246,47 +248,6 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok", data: orders });
 });
 
-exports.changeStatusByCollector = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
-  const { orderId, status } = req.body;
-
-  const order = await Order.findOneAndUpdate(
-    { _id: orderId, pickedby: userId },
-    { status },
-    {
-      new: true,
-    }
-  );
-  if (!order) {
-    return res.status(404).json({ msg: "Can't change this order status" });
-  }
-
-  res.status(200).json({ msg: "ok", data: order });
-});
-exports.changeStatusByReceiver = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
-  const { orderId, status } = req.body;
-
-  let images = [];
-  if (req.files) {
-    req.files.forEach((f) => {
-      images.push(f.path);
-    });
-  }
-
-  const order = await Order.findOneAndUpdate(
-    { _id: orderId, deliveredby: userId },
-    { status, images },
-    { new: true }
-  );
-
-  if (!order) {
-    return res.status(404).json({ msg: "Can't change this order status" });
-  }
-
-  res.status(200).json({ msg: "ok", data: order });
-});
-
 exports.trackOrder = asyncHandler(async (req, res) => {
   const { ordernumber } = req.params;
 
@@ -511,3 +472,159 @@ exports.addOrderToReceiver = asyncHandler(async (req, res) => {
 
   res.json({ msg: "ok", data: order });
 });
+
+//#region change order status
+// By Collector
+exports.pickedByCollector = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+  const prevStatus = "pending";
+  const changeStatusTo = "pick to store";
+
+  const order = await Order.findOne({ _id: orderId, pickedby: userId });
+
+  await changeOrderStatus(order, prevStatus, changeStatusTo);
+
+  res.status(200).json({ msg: "ok" });
+});
+exports.deliveredByCollector = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+  const prevStatus = "pick to store";
+  const changeStatusTo = "delivered by collector";
+
+  const order = await Order.findOne({ _id: orderId, pickedby: userId });
+
+  await changeOrderStatus(order, prevStatus, changeStatusTo);
+
+  res.status(200).json({ msg: "ok" });
+});
+
+exports.orderInStoreRequest = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+
+  const order = await Order.findOne({ _id: orderId, pickedby: userId });
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.status != "delivered by collector") {
+    return res.status(404).json({
+      msg: `Order status should be "delivered by collector" to make this request`,
+    });
+  }
+
+  order.inStore.request = true;
+  await order.save();
+  res.status(200).json({ msg: "ok" });
+});
+
+// By Store Keeper
+exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId, requestStatus } = req.body;
+
+  const order = await Order.findById(orderId);
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+
+  const storekeeper = await Storekeeper.findById(userId);
+  if (!storekeeper) {
+    return res.status(404).json({ msg: "Store keeper is not found" });
+  }
+  // if (storekeeper.city != order.sendercity) {
+  //   return res.status(404).json({ msg: "Can't access this order" });
+  // }
+
+  if (order.status == "in store") {
+    return res.status(400).json({
+      err: "This order is already in store",
+    });
+  }
+
+  if (order.inStore.request) {
+    order.inStore.requestStatus = requestStatus;
+    if (requestStatus == "accepted") {
+      order.status = "in store";
+    }
+
+    await order.save();
+  }
+
+  res.status(200).json({ msg: "ok" });
+});
+
+// By Receiver
+exports.pickedByReceiver = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+  const prevStatus = "in store";
+  const changeStatusTo = "pick to client";
+
+  const order = await Order.findOne({ _id: orderId, deliveredby: userId });
+
+  await changeOrderStatus(order, prevStatus, changeStatusTo);
+
+  res.status(200).json({ msg: "ok" });
+});
+exports.deliveredByReceiver = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+  const prevStatus = "pick to client";
+  const changeStatusTo = "delivered by receiver";
+
+  const order = await Order.findOne({ _id: orderId, deliveredby: userId });
+
+  await changeOrderStatus(order, prevStatus, changeStatusTo);
+
+  res.status(200).json({ msg: "ok" });
+});
+exports.orderReceived = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+  const prevStatus = "delivered by receiver";
+  const changeStatusTo = "received";
+
+  const order = await Order.findOne({ _id: orderId, deliveredby: userId });
+
+  await changeOrderStatus(order, prevStatus, changeStatusTo);
+
+  res.status(200).json({ msg: "ok" });
+});
+
+exports.cancelOrderByReceiver = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  const order = await Order.findOne({ _id: orderId, deliveredby: userId });
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (
+    [
+      "pending",
+      "pick to store",
+      "delivered by collector",
+      "in store",
+      "received",
+    ].includes(order.status)
+  ) {
+    return res.status(404).json({
+      msg: `Order status is "${order.status}", can't cancel it`,
+    });
+  }
+
+  order.status = "canceled";
+  order.images = images;
+  await order.save();
+  res.status(200).json({ msg: "ok" });
+});
+//#endregion change order status
