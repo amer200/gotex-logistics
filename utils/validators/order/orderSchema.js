@@ -45,7 +45,6 @@ const orderSchema = {
     "weight",
     "description",
     "pieces",
-    "status",
   ],
 
   additionalProperties: false,
