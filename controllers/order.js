@@ -609,16 +609,17 @@ exports.cancelOrderByReceiver = asyncHandler(async (req, res) => {
     return res.status(404).json({ msg: "Order is not found" });
   }
   if (
-    [
-      "pending",
-      "pick to store",
-      "delivered by collector",
-      "in store",
-      "received",
-    ].includes(order.status)
+    ["pending", "pick to store", "delivered by collector", "received"].includes(
+      order.status
+    )
   ) {
     return res.status(404).json({
       msg: `Order status is "${order.status}", can't cancel it`,
+    });
+  }
+  if (order.status == "canceled") {
+    return res.status(404).json({
+      msg: `Order is already canceled`,
     });
   }
 
