@@ -1,12 +1,12 @@
 const Carrier = require("../models/carrier");
 const Notification = require("../models/notifications");
 /**
- * @Des : After creating order (collector) and after adding order to
- * store by store keeper (receiver) , we add it to a carrier that:
+ * @Des : After creating order (in case of collector) and after adding order to
+ * store by store keeper (in case of receiver) ,add order to a carrier that:
  * - has area = sendercity and has the least number of orders to deliver
- * in this month (not delivered yet)
- * - if there are more than one collector that have the same least number of
- * orders then give the order to the collector that has less number of orders in
+ * in this month (only orders that are not delivered yet)
+ * - if there are more than one carrier that have the same least number of
+ * orders then give the order to a carrier that has less number of orders in
  * this month (any status of orders that assigned to him)
  */
 
@@ -19,15 +19,17 @@ const addOrderToCarrier = async (order, role, io) => {
     1
   );
 
+  /**not delivered orders statuses (before become 'in store' in case of collectors
+   * or 'received' in case of receiver) */
   let orderStatusArr = [];
   if (role == "collector") {
-    orderStatusArr = ["pending", "pick to store", "delivered by collector"];
+    orderStatusArr = ["pending", "pick to store"];
   } else if (role == "receiver") {
-    orderStatusArr = ["in store", "pick to client", "delivered by receiver"];
+    orderStatusArr = ["in store", "pick to client"];
   }
 
   /**
-   * @Des : return carriers in the same city as the sendercity that have
+   * @Des : return carriers in the same city as the sendercity (or senderdistrict) that have
    * the same number of 'pick to store' orders in this month
    */
   let carriers = await Carrier.find({

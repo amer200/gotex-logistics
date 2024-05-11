@@ -16,13 +16,11 @@ const {
   addOrderToCollector,
   getOrdersWithoutCarriers,
   addOrderToReceiver,
-  pickedByCollector,
-  deliveredByCollector,
-  pickedByReceiver,
-  cancelOrderByReceiver,
+  pickedToStore,
+  pickedToClient,
+  cancelOrder,
   orderInStoreRequest,
   inStoreRequestStatus,
-  deliveredByReceiver,
   orderReceived,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
@@ -48,12 +46,7 @@ routes.get(
 );
 
 //#region change order status
-routes.put("/picked-by-collector", isAuth("collector"), pickedByCollector);
-routes.put(
-  "/delivered-by-collector",
-  isAuth("collector"),
-  deliveredByCollector
-);
+routes.put("/picked-to-store", isAuth("collector"), pickedToStore);
 routes.put("/in-store-request", isAuth("collector"), orderInStoreRequest);
 
 routes.put(
@@ -63,13 +56,12 @@ routes.put(
   inStoreRequestStatus
 );
 
-routes.put("/picked-by-receiver", isAuth("receiver"), pickedByReceiver);
-routes.put("/delivered-by-receiver", isAuth("receiver"), deliveredByReceiver);
+routes.put("/picked-to-client", isAuth("receiver"), pickedToClient);
 routes.put("/order-received", isAuth("receiver"), orderReceived);
 routes.put(
-  "/cancel-order-by-receiver",
-  isAuth("receiver"),
-  cancelOrderByReceiver
+  "/cancel-order",
+  isAuth(["data entry", "admin", "collector"]),
+  cancelOrder
 );
 //#endregion change order status
 

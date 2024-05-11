@@ -6,10 +6,12 @@ const orderSchema = {
     recivername: { type: "string" },
     reciveraddress: { type: "string" },
     recivercity: { type: "string" },
+    // reciverdistrict: { type: "string" },
     reciverphone: { type: "string" },
     sendername: { type: "string" },
     senderaddress: { type: "string" },
     sendercity: { type: "string" },
+    // senderdistrict: { type: "string" },
     senderphone: { type: "string" },
     paytype: { type: "string" },
     price: { type: "number" },
@@ -20,11 +22,9 @@ const orderSchema = {
       type: "string",
       enum: [
         "pending",
-        "pick to store", // collector picked it
-        "delivered by collector",
+        "pick to store",
         "in store",
-        "pick to client", // receiver picked it
-        "delivered by receiver",
+        "pick to client",
         "received",
         "canceled",
       ],

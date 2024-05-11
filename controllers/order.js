@@ -47,6 +47,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     description,
   });
   createPdf(order, false);
+  console.log(order);
 
   await addOrderToCarrier(order, "collector", req.io);
 
@@ -475,23 +476,11 @@ exports.addOrderToReceiver = asyncHandler(async (req, res) => {
 
 //#region change order status
 // By Collector
-exports.pickedByCollector = asyncHandler(async (req, res) => {
+exports.pickedToStore = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId } = req.body;
   const prevStatus = "pending";
   const changeStatusTo = "pick to store";
-
-  const order = await Order.findOne({ _id: orderId, pickedby: userId });
-
-  await changeOrderStatus(order, prevStatus, changeStatusTo);
-
-  res.status(200).json({ msg: "ok" });
-});
-exports.deliveredByCollector = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
-  const { orderId } = req.body;
-  const prevStatus = "pick to store";
-  const changeStatusTo = "delivered by collector";
 
   const order = await Order.findOne({ _id: orderId, pickedby: userId });
 
@@ -508,9 +497,9 @@ exports.orderInStoreRequest = asyncHandler(async (req, res) => {
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
   }
-  if (order.status != "delivered by collector") {
+  if (order.status != "pick to store") {
     return res.status(404).json({
-      msg: `Order status should be "delivered by collector" to make this request`,
+      msg: `Order status should be "pick to store" to make this request`,
     });
   }
 
@@ -533,9 +522,9 @@ exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
   if (!storekeeper) {
     return res.status(404).json({ msg: "Store keeper is not found" });
   }
-  // if (storekeeper.city != order.sendercity) {
-  //   return res.status(404).json({ msg: "Can't access this order" });
-  // }
+  if (storekeeper.city != order.sendercity) {
+    return res.status(404).json({ msg: "Can't access this order" });
+  }
 
   if (order.status == "in store") {
     return res.status(400).json({
@@ -547,6 +536,8 @@ exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
     order.inStore.requestStatus = requestStatus;
     if (requestStatus == "accepted") {
       order.status = "in store";
+
+      addOrderToCarrier(order, "receiver", req.io);
     }
 
     await order.save();
@@ -556,7 +547,7 @@ exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
 });
 
 // By Receiver
-exports.pickedByReceiver = asyncHandler(async (req, res) => {
+exports.pickedToClient = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId } = req.body;
   const prevStatus = "in store";
@@ -568,22 +559,10 @@ exports.pickedByReceiver = asyncHandler(async (req, res) => {
 
   res.status(200).json({ msg: "ok" });
 });
-exports.deliveredByReceiver = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
-  const { orderId } = req.body;
-  const prevStatus = "pick to client";
-  const changeStatusTo = "delivered by receiver";
-
-  const order = await Order.findOne({ _id: orderId, deliveredby: userId });
-
-  await changeOrderStatus(order, prevStatus, changeStatusTo);
-
-  res.status(200).json({ msg: "ok" });
-});
 exports.orderReceived = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId } = req.body;
-  const prevStatus = "delivered by receiver";
+  const prevStatus = "pick to client";
   const changeStatusTo = "received";
 
   const order = await Order.findOne({ _id: orderId, deliveredby: userId });
@@ -593,7 +572,7 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok" });
 });
 
-exports.cancelOrderByReceiver = asyncHandler(async (req, res) => {
+exports.cancelOrder = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId } = req.body;
 

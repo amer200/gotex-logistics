@@ -14,6 +14,10 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // reciverdistrict: {
+    //   type: String,
+    //   default: "",
+    // },
     reciverphone: {
       type: String,
       required: true,
@@ -30,6 +34,10 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // senderdistrict: {
+    //   type: String,
+    //   default: "",
+    // },
     senderphone: {
       type: String,
       required: true,
@@ -43,9 +51,9 @@ const orderSchema = new mongoose.Schema(
     weight: Number,
     location: Object,
     itemdetails: Object,
-    storekeeper: { type: mongoose.Schema.Types.ObjectId, ref: "Storekeeper" },
     pickedby: { type: mongoose.Schema.Types.ObjectId, ref: "Carrier" },
     deliveredby: { type: mongoose.Schema.Types.ObjectId, ref: "Carrier" },
+    storekeeper: { type: mongoose.Schema.Types.ObjectId, ref: "Storekeeper" },
     billcode: String,
     canceldescription: String,
     isreturn: {
@@ -56,11 +64,9 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: [
         "pending",
-        "pick to store", // collector picked it
-        "delivered by collector",
+        "pick to store",
         "in store",
-        "pick to client", // receiver picked it
-        "delivered by receiver",
+        "pick to client",
         "received",
         "canceled",
       ],
