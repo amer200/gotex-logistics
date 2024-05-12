@@ -1,7 +1,8 @@
 const express = require("express");
 const routes = express.Router();
-const { getCities } = require("../controllers/cities");
+const { getCities, getDistricts } = require("../controllers/cities");
 
-routes.get('/', getCities);
+routes.get("/", getCities);
+routes.get("/districts", getDistricts);
 
 module.exports = routes;
