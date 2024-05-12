@@ -419,19 +419,24 @@ exports.addOrderToCollector = asyncHandler(async (req, res) => {
     return res.status(404).json({ msg: "Order is not found" });
   }
 
+  if (order.pickedby) {
+    return res.status(404).json({
+      msg: `Order already added to a collector`,
+    });
+  }
+
+  if (order.status != "pending") {
+    return res.status(404).json({
+      msg: `Order status should be "pending" to add a collector to order`,
+    });
+  }
+
   const carrier = await Carrier.findOne({ _id: carrierId, role: "collector" });
   if (!carrier) {
     return res.status(404).json({ msg: "Collector is not found" });
   }
 
-  if (order.status == "pending") {
-    order.pickedby = carrierId;
-  } else {
-    return res.status(404).json({
-      msg: `Order status is "${order.status}", you can't add a collector`,
-    });
-  }
-
+  order.pickedby = carrierId;
   await order.save();
 
   let notification = Notification.create({
@@ -450,18 +455,24 @@ exports.addOrderToReceiver = asyncHandler(async (req, res) => {
     return res.status(404).json({ msg: "Order is not found" });
   }
 
+  if (order.deliveredby) {
+    return res.status(404).json({
+      msg: `Order already added to a receiver`,
+    });
+  }
+
+  if (order.status != "in store") {
+    return res.status(404).json({
+      msg: `Order status should be "in store" to add a receiver to order`,
+    });
+  }
+
   const carrier = await Carrier.findOne({ _id: carrierId, role: "receiver" });
   if (!carrier) {
     return res.status(404).json({ msg: "Receiver is not found" });
   }
 
-  if (order.status == "in store") {
-    order.deliveredby = carrierId;
-  } else {
-    return res.status(404).json({
-      msg: `Order status is "${order.status}", you can't add a receiver`,
-    });
-  }
+  order.deliveredby = carrierId;
   await order.save();
 
   let notification = Notification.create({
