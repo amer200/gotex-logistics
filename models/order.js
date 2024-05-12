@@ -14,10 +14,10 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // reciverdistrict: {
-    //   type: String,
-    //   default: "",
-    // },
+    reciverdistrict: {
+      type: String,
+      required: true,
+    },
     reciverphone: {
       type: String,
       required: true,
@@ -34,10 +34,10 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // senderdistrict: {
-    //   type: String,
-    //   default: "",
-    // },
+    senderdistrict: {
+      type: String,
+      required: true,
+    },
     senderphone: {
       type: String,
       required: true,

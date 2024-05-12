@@ -13,14 +13,16 @@ const changeOrderStatus = require("../utils/changeOrderStatus");
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const {
-    recivername,
-    reciveraddress,
-    recivercity,
-    reciverphone,
     sendername,
     senderaddress,
     sendercity,
+    senderdistrict,
     senderphone,
+    recivername,
+    reciveraddress,
+    recivercity,
+    reciverdistrict,
+    reciverphone,
     paytype,
     price,
     weight,
@@ -31,19 +33,21 @@ exports.createOrder = asyncHandler(async (req, res) => {
   const createdby = req.user.id;
 
   const order = await Order.create({
-    pieces,
-    recivername,
-    reciveraddress,
-    recivercity,
-    reciverphone,
     sendername,
     senderaddress,
     sendercity,
+    senderdistrict,
     senderphone,
+    recivername,
+    reciveraddress,
+    recivercity,
+    reciverdistrict,
+    reciverphone,
     createdby,
     paytype,
     price,
     weight,
+    pieces,
     description,
   });
   createPdf(order, false);

@@ -3,7 +3,7 @@ const Notification = require("../models/notifications");
 /**
  * @Des : After creating order (in case of collector) and after adding order to
  * store by store keeper (in case of receiver) ,add order to a carrier that:
- * - has area = sendercity and has the least number of orders to deliver
+ * - has area = senderdistrict and has the least number of orders to deliver
  * in this month (only orders that are not delivered yet)
  * - if there are more than one carrier that have the same least number of
  * orders then give the order to a carrier that has less number of orders in
@@ -22,20 +22,29 @@ const addOrderToCarrier = async (order, role, io) => {
   /**not delivered orders statuses (before become 'in store' in case of collectors
    * or 'received' in case of receiver) */
   let orderStatusArr = [];
+  let orderArea = "";
   if (role == "collector") {
     orderStatusArr = ["pending", "pick to store"];
+    orderArea = order.senderdistrict;
   } else if (role == "receiver") {
     orderStatusArr = ["in store", "pick to client"];
+    orderArea = order.reciverdistrict;
   }
 
+  const query = {
+    role,
+    area: {
+      $elemMatch: {
+        district: { $regex: orderArea, $options: "i" },
+      },
+    },
+  };
+
   /**
-   * @Des : return carriers in the same city as the sendercity (or senderdistrict) that have
+   * @Des : return carriers in the same city as the senderdistrict (or senderdistrict) that have
    * the same number of 'pick to store' orders in this month
    */
-  let carriers = await Carrier.find({
-    role,
-    area: { $in: [order.sendercity] },
-  }).populate({
+  let carriers = await Carrier.find(query).populate({
     path: "orders",
     /**@Desc Notice that: if it doesn't match any of docs, it returns orders=null */
     match: {
@@ -64,10 +73,7 @@ const addOrderToCarrier = async (order, role, io) => {
   // console.log("sameNotDeliveredOrders", JSON.stringify(carriers, null, 2))
 
   if (carriers.length > 1) {
-    carriers = await Carrier.find({
-      role,
-      area: { $in: [order.sendercity] },
-    }).populate({
+    carriers = await Carrier.find(query).populate({
       path: "orders",
       match: {
         createdAt: {
