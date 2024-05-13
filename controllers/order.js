@@ -588,7 +588,7 @@ exports.orderReceived = asyncHandler(async (req, res) => {
 });
 
 exports.cancelOrder = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const { id: userId, role } = req.user;
   const { orderId } = req.body;
 
   let images = [];
@@ -598,15 +598,20 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  const order = await Order.findOne({ _id: orderId, deliveredby: userId });
+  let order = "";
+  if (role == "data entry") {
+    order = await Order.findOne({ _id: orderId, createdby: userId });
+  } else if (role == "collector") {
+    order = await Order.findOne({ _id: orderId, pickedby: userId });
+  } else if (role == "admin") {
+    order = await Order.findOne({ _id: orderId });
+  }
+
+  // const order = await Order.findOne({ _id: orderId });
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
   }
-  if (
-    ["pending", "pick to store", "delivered by collector", "received"].includes(
-      order.status
-    )
-  ) {
+  if (["in store", "pick to client", "received"].includes(order.status)) {
     return res.status(404).json({
       msg: `Order status is "${order.status}", can't cancel it`,
     });
