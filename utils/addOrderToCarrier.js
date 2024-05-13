@@ -33,11 +33,7 @@ const addOrderToCarrier = async (order, role, io) => {
 
   const query = {
     role,
-    area: {
-      $elemMatch: {
-        district: { $regex: orderArea, $options: "i" },
-      },
-    },
+    deliveryDistricts: { $in: [orderArea] },
   };
 
   /**

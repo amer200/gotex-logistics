@@ -20,16 +20,9 @@ const userSchema = {
     verified: { type: "boolean" },
     photo: { type: "string" },
     papers: { type: "array" },
-    area: {
+    deliveryCity: { type: "string" },
+    deliveryDistricts: {
       type: "array",
-      items: {
-        type: "object",
-        properties: {
-          city: { type: "string" },
-          district: { type: "string" },
-        },
-        required: ["city", "district"],
-      },
     },
   },
   required: [
@@ -40,7 +33,8 @@ const userSchema = {
     "city",
     "firstName",
     "lastName",
-    "area",
+    "deliveryCity",
+    "deliveryDistricts",
   ],
   additionalProperties: false,
 };

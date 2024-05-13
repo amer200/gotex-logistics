@@ -26,12 +26,8 @@ const carrierSchema = new mongoose.Schema(
     verifyCode: Number,
     photo: String,
     papers: [String],
-    area: [
-      {
-        city: String,
-        district: String,
-      },
-    ],
+    deliveryCity: String,
+    deliveryDistricts: [String],
     orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
   },
   { versionKey: false, strict: false }

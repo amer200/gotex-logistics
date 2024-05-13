@@ -9,8 +9,17 @@ const mailSubject = "Verify your gotex account";
 
 exports.registerCarrier = asyncHandler(async (req, res) => {
   const { role } = req.query;
-  let { firstName, lastName, email, mobile, nid, city, address, area } =
-    req.body;
+  let {
+    firstName,
+    lastName,
+    email,
+    mobile,
+    nid,
+    city,
+    address,
+    deliveryCity,
+    deliveryDistricts,
+  } = req.body;
 
   let photo = "";
   let papers = [];
@@ -41,7 +50,8 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
     address,
     photo,
     papers,
-    area,
+    deliveryCity,
+    deliveryDistricts,
     role,
   });
 
