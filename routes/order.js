@@ -22,6 +22,7 @@ const {
   orderInStoreRequest,
   inStoreRequestStatus,
   orderReceived,
+  getInStoreRequests,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -49,6 +50,7 @@ routes.get(
 routes.put("/picked-to-store", isAuth("collector"), pickedToStore);
 routes.put("/in-store-request", isAuth("collector"), orderInStoreRequest);
 
+routes.get("/in-store-requests", isAuth("storekeeper"), getInStoreRequests);
 routes.put(
   "/in-store-request-status",
   isAuth("storekeeper"),

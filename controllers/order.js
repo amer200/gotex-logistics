@@ -527,6 +527,22 @@ exports.orderInStoreRequest = asyncHandler(async (req, res) => {
 });
 
 // By Store Keeper
+/* to get in store requests for storekeeper that is in the same city as the sender city*/
+exports.getInStoreRequests = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  const storekeeper = await Storekeeper.findById(userId);
+  if (!storekeeper) {
+    return res.status(404).json({ msg: "Store keeper is not found" });
+  }
+
+  const orders = await Order.find({
+    "inStore.request": true,
+    sendercity: storekeeper.city,
+  }).sort({ updatedAt: -1 });
+
+  res.status(200).json({ result: orders.length, orders });
+});
 exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId, requestStatus } = req.body;
