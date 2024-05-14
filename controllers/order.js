@@ -238,7 +238,10 @@ exports.getCollectorOrders = asyncHandler(async (req, res) => {
 });
 exports.getReceiverOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const orders = await Order.find({ deliveredby: userId }).sort({
+  const orders = await Order.find({
+    deliveredby: userId,
+    status: { $nin: ["pending", "pick to store"] },
+  }).sort({
     updatedAt: -1,
   });
 
