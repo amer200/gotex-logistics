@@ -295,6 +295,8 @@ exports.returnOrder = asyncHandler(async (req, res) => {
 
 
   createPdf(order, true);
+  // swap data for sender and receiver
+  // made picked by to delivered 
   order.pickedby = order.deliveredby;
   const receiver = {
     name: order.sendername,
@@ -313,6 +315,7 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   order.reciveraddress = receiver.address;
   order.reciverphone = receiver.phone;
   order.reciverdistrict = receiver.district;
+  // call function to add new reciver with same city of sender
   await addOrderToCarrier(order, "receiver", req.io);
 
   if (!order) {
