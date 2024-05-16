@@ -287,12 +287,33 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const order = await Order.findOneAndUpdate(
     { _id: id },
-    { isreturn: true },
+    { isreturn: true, status: 'in store' },
     {
       new: true,
     }
   );
+
+
   createPdf(order, true);
+  order.pickedby = order.deliveredby;
+  const receiver = {
+    name: order.sendername,
+    address: order.senderaddress,
+    city: order.sendercity,
+    district: order.senderdistrict,
+    phone: order.senderphone
+  }
+  order.sendername = order.recivername;
+  order.sendercity = order.recivercity;
+  order.senderaddress = order.reciveraddress;
+  order.senderphone = order.reciverphone;
+  order.senderdistrict = order.reciverdistrict;
+  order.recivername = receiver.name;
+  order.recivercity = receiver.city;
+  order.reciveraddress = receiver.address;
+  order.reciverphone = receiver.phone;
+  order.reciverdistrict = receiver.district;
+  await addOrderToCarrier(order, "receiver", req.io);
 
   if (!order) {
     return res.status(409).json({ msg: "Order is not found" });
