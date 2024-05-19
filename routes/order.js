@@ -35,7 +35,7 @@ routes.post(
   createOrder
 );
 routes.get("/getorder/:id", getOrder);
-routes.put("/return-order/:id", returnOrder);
+routes.put("/return-order/:id", isAuth("receiver"), returnOrder);
 
 routes.get("/get-user-orders", isAuth("data entry"), getUserOrders);
 routes.get("/get-collector-orders", isAuth("collector"), getCollectorOrders);

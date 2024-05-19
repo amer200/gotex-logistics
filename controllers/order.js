@@ -51,9 +51,9 @@ exports.createOrder = asyncHandler(async (req, res) => {
     description,
   });
   createPdf(order, false);
-  console.log(order);
 
   await addOrderToCarrier(order, "collector", req.io);
+  await order.save();
 
   res.json({ msg: "order created", data: order });
 });
@@ -285,26 +285,45 @@ exports.trackOrder = asyncHandler(async (req, res) => {
 
 exports.returnOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const order = await Order.findOneAndUpdate(
-    { _id: id },
-    { isreturn: true, status: 'in store' },
-    {
-      new: true,
-    }
-  );
 
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
 
+  const order = await Order.findById(id);
+
+  if (!order) {
+    return res.status(409).json({ msg: "Order is not found" });
+  }
+  if (order.isreturn) {
+    return res.status(404).json({
+      msg: `The return request has already sent`,
+    });
+  }
+  if (order.status != "pick to client") {
+    return res.status(404).json({
+      msg: `Order status should be "pick to client" to make this request`,
+    });
+  }
+
+  order.isreturn = true;
+  order.images = images;
+  order.status = "in store";
   createPdf(order, true);
+
   // swap data for sender and receiver
-  // made picked by to delivered 
+  // made picked by to delivered
   order.pickedby = order.deliveredby;
   const receiver = {
     name: order.sendername,
     address: order.senderaddress,
     city: order.sendercity,
     district: order.senderdistrict,
-    phone: order.senderphone
-  }
+    phone: order.senderphone,
+  };
   order.sendername = order.recivername;
   order.sendercity = order.recivercity;
   order.senderaddress = order.reciveraddress;
@@ -315,12 +334,9 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   order.reciveraddress = receiver.address;
   order.reciverphone = receiver.phone;
   order.reciverdistrict = receiver.district;
-  // call function to add new reciver with same city of sender
-  await addOrderToCarrier(order, "receiver", req.io);
 
-  if (!order) {
-    return res.status(409).json({ msg: "Order is not found" });
-  }
+  await addOrderToCarrier(order, "receiver", req.io); // add new receiver with same city of sender
+  await order.save();
 
   res.status(200).json({ msg: "ok", data: order });
 });

@@ -31,7 +31,8 @@ app.post(
   ])
 );
 
-app.put("/order/cancel-order-by-receiver", uploadOrderData.array("images"));
+app.put("/order/cancel-order", uploadOrderData.array("images"));
+app.put("/order/return-order/:id", uploadOrderData.array("images"));
 
 // Middlewares
 app.use(express.static("public"));
