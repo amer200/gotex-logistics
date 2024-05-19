@@ -1,4 +1,5 @@
 const Carrier = require("../models/carrier");
+const Order = require("../models/order");
 const Notification = require("../models/notifications");
 /**
  * @Des : After creating order (in case of collector) and after adding order to
@@ -53,7 +54,7 @@ const addOrderToCarrier = async (order, role, io) => {
     select: "_id createdAt status",
   });
 
-  console.log("sameCity", JSON.stringify(carriers, null, 2));
+  // console.log("sameCity", JSON.stringify(carriers, null, 2));
   // get carriers with least number of picked orders
   carriers = carriers.reduce((c1, c2) => {
     c1 = c1 || [];
@@ -69,6 +70,7 @@ const addOrderToCarrier = async (order, role, io) => {
   // console.log("sameNotDeliveredOrders", JSON.stringify(carriers, null, 2))
 
   if (carriers.length > 1) {
+    console.log(">1");
     carriers = await Carrier.find(query).populate({
       path: "orders",
       match: {
@@ -80,7 +82,7 @@ const addOrderToCarrier = async (order, role, io) => {
       select: "_id createdAt status",
     });
 
-    console.log("sameOrders", JSON.stringify(carriers, null, 2));
+    // console.log("sameOrders", JSON.stringify(carriers, null, 2));
     // get carriers with least number of orders
     carriers = carriers.reduce((c1, c2) => {
       c1 = c1 || [];
@@ -92,7 +94,7 @@ const addOrderToCarrier = async (order, role, io) => {
         return [c2];
       }
     }, []);
-    console.log("sameOrders2", JSON.stringify(carriers, null, 2));
+    // console.log("sameOrders2", JSON.stringify(carriers, null, 2));
   }
 
   if (carriers.length) {
@@ -103,7 +105,22 @@ const addOrderToCarrier = async (order, role, io) => {
     }
 
     carriers[0].orders.push(order._id);
-    await Promise.all([order.save(), carriers[0].save()]);
+    await carriers[0].save();
+  } else {
+    console.log("here");
+    if (role == "collector") {
+      await Order.findOneAndUpdate(
+        { _id: order._id },
+        { $unset: { pickedby: "" } },
+        { new: true }
+      );
+    } else if (role == "receiver") {
+      await Order.findOneAndUpdate(
+        { _id: order._id },
+        { $unset: { deliveredby: "" } },
+        { new: true }
+      );
+    }
   }
 
   let notification = await Notification.create({
