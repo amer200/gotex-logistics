@@ -8,7 +8,7 @@ const bwipjs = require("bwip-js");
 exports.createPdf = (data, isreturn) => {
   const doc = new PDFDocument();
   const customFont = fs.readFileSync(`./Amiri-Regular.ttf`);
-
+  console.log(data.senderaddress.split(" "));
   const width = doc.page.width;
   const height = doc.page.height;
   doc.lineWidth(2); // You can adjust the thickness as needed
@@ -70,29 +70,45 @@ exports.createPdf = (data, isreturn) => {
       .fontSize(20)
       .text("From:", 10, 185)
       .font(`Amiri-Regular`)
-      .text(isreturn == true ? data.recivername : data.sendername, 20, 205)
-      .text(isreturn == true ? data.recivercity : data.sendercity, 20, 225)
+      .text(isreturn == true ? data.recivername : data.sendername, 20, 205,
+        { features: ['rtla'] })
+      .text(isreturn == true ? data.recivercity : data.sendercity, 20, 225,
+        { features: ['rtla'] })
       .text(
+        isreturn == true ? data.reciverdistrict : data.senderdistrict,
+        20,
+        245,
+        { features: ['rtla'] }
+      ).text(
         isreturn == true ? data.reciveraddress : data.senderaddress,
         20,
-        245
+        265,
+        { features: ['rtla'] }
       )
-      .text(isreturn == true ? data.reciverphone : data.senderphone, 20, 265);
-    doc.moveTo(startX, 300).lineTo(endX, 300).stroke();
-    // Add Receiver details with border
+      .text(isreturn == true ? data.reciverphone : data.senderphone, 20, 285);
+    doc.moveTo(startX, 310).lineTo(endX, 310).stroke();
+    // Add Receiver details1 with border
     doc
       .fontSize(20)
       .text("To:", 10, 320)
       .font(`Amiri-Regular`)
-      .text(isreturn == true ? data.sendername : data.recivername, 20, 340)
-      .text(isreturn == true ? data.sendercity : data.recivercity, 20, 360)
+      .text(isreturn == true ? data.sendername : data.recivername, 20, 340,
+        { features: ['rtla'] })
+      .text(isreturn == true ? data.sendercity : data.recivercity, 20, 360,
+        { features: ['rtla'] })
       .text(
+        isreturn == true ? data.senderdistrict : data.reciverdistrict,
+        20,
+        380,
+        { features: ['rtla'] }
+      ).text(
         isreturn == true ? data.senderaddress : data.reciveraddress,
         20,
-        380
+        400,
+        { features: ['rtla'] }
       )
-      .text(isreturn == true ? data.senderphone : data.reciverphone, 20, 400);
-    doc.moveTo(startX, 430).lineTo(endX, 430).stroke();
+      .text(isreturn == true ? data.senderphone : data.reciverphone, 20, 420);
+    doc.moveTo(startX, 445).lineTo(endX, 445).stroke();
 
     doc
       .fontSize(20)
