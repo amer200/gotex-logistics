@@ -1,9 +1,15 @@
 const ApiError = require("./ApiError");
 
 const changeOrderStatus = async (order, prevStatus, changeStatusTo) => {
-  console.log(order);
   if (!order) {
     throw new ApiError(404, "Order is not found");
+  }
+
+  if (["received", "canceled"].includes(order.status)) {
+    throw new ApiError(
+      400,
+      `Order is ${order.status}. Can't change its status.`
+    );
   }
 
   if (order.status == changeStatusTo) {
@@ -18,7 +24,6 @@ const changeOrderStatus = async (order, prevStatus, changeStatusTo) => {
   }
 
   order.status = changeStatusTo;
-  await order.save();
 };
 
 module.exports = changeOrderStatus;
