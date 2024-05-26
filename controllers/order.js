@@ -311,7 +311,7 @@ exports.returnOrder = asyncHandler(async (req, res) => {
 
   order.isreturn = true;
   order.status = "in store";
-  createPdf(order, true);
+ 
 
   // swap data for sender and receiver
   // made picked by to delivered
@@ -333,7 +333,7 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   order.reciveraddress = receiver.address;
   order.reciverphone = receiver.phone;
   order.reciverdistrict = receiver.district;
-
+ createPdf(order, false);
   await addOrderToCarrier(order, "receiver", req.io); // add new receiver with same city of sender
 
   order.images.return = images;

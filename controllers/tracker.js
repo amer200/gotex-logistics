@@ -28,7 +28,7 @@ exports.registerTracker = asyncHandler(async (req, res) => {
         address
     })
 
-    const response = await sendEmail(tracker.email, tracker._id, '', "/../views/userVerifyEmail.ejs", mailSubject)
+    const response = await sendEmail(tracker.email, tracker._id, '', "/../views/trackerVerifyEmail.ejs", mailSubject)
     if (response && response.error) {
         console.error(response.error);
         res.status(500).json({ msg: 'Failed to send email' });
