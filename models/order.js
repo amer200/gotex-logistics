@@ -69,10 +69,21 @@ const orderSchema = new mongoose.Schema(
         "pick to client",
         "received",
         "canceled",
+        "return",
       ],
       default: "pending",
     },
-    images: [String],
+    images: {
+      pending: [String],
+      pickedToStore: [String],
+      inStoreRequest: [String],
+      inStoreRequestStatus: [String],
+      inStore: [String],
+      pickedToClient: [String],
+      received: [String],
+      canceled: [String],
+      return: [String],
+    },
     inStore: {
       request: {
         type: Boolean,

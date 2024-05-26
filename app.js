@@ -31,8 +31,29 @@ app.post(
   ])
 );
 
-app.put("/order/cancel-order", uploadOrderData.array("images"));
-app.put("/order/return-order/:id", uploadOrderData.array("images"));
+app.put(
+  "/order/picked-to-store",
+  uploadOrderData.array("images.pickedToStore")
+);
+app.put(
+  "/order/in-store-request",
+  uploadOrderData.array("images.inStoreRequest")
+);
+app.put(
+  "/order/in-store-request-status",
+  uploadOrderData.array("images.inStoreRequestStatus")
+);
+app.patch(
+  "/store-keeper/add-order-store/:ordernumber",
+  uploadOrderData.array("images.inStore")
+);
+app.put(
+  "/order/picked-to-client",
+  uploadOrderData.array("images.pickedToClient")
+);
+app.put("/order/order-received", uploadOrderData.array("images.received"));
+app.put("/order/cancel-order", uploadOrderData.array("images.canceled"));
+app.put("/order/return-order/:id", uploadOrderData.array("images.return"));
 
 // Middlewares
 app.use(express.static("public"));
