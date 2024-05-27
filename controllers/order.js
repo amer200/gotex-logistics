@@ -311,7 +311,6 @@ exports.returnOrder = asyncHandler(async (req, res) => {
 
   order.isreturn = true;
   order.status = "in store";
- 
 
   // swap data for sender and receiver
   // made picked by to delivered
@@ -333,7 +332,7 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   order.reciveraddress = receiver.address;
   order.reciverphone = receiver.phone;
   order.reciverdistrict = receiver.district;
- createPdf(order, false);
+  createPdf(order, false);
   await addOrderToCarrier(order, "receiver", req.io); // add new receiver with same city of sender
 
   order.images.return = images;
@@ -534,6 +533,43 @@ exports.addOrderToReceiver = asyncHandler(async (req, res) => {
 });
 
 //#region change order status
+// By Data Entry or Admin. To change order status to pending after canceling order.
+exports.changeStatusToPending = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+  const prevStatus = "canceled";
+  const changeStatusTo = "pending";
+
+  const order = await Order.findOne({ _id: orderId, createdby: userId });
+
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.status == changeStatusTo) {
+    return res.status(400).json({
+      msg: `Order status is already "${changeStatusTo}"`,
+    });
+  }
+  if (order.status != prevStatus) {
+    return res.status(404).json({
+      msg: `Order status should be ${prevStatus} to change it to ${changeOrderStatus}`,
+    });
+  }
+
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  order.status = "pending";
+  order.images.pending = images;
+  await order.save();
+
+  res.status(200).json({ msg: "ok" });
+});
+
 // By Collector
 exports.pickedToStore = asyncHandler(async (req, res) => {
   const userId = req.user.id;

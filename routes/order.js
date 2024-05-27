@@ -23,6 +23,7 @@ const {
   inStoreRequestStatus,
   orderReceived,
   getInStoreRequests,
+  changeStatusToPending,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -47,6 +48,11 @@ routes.get(
 );
 
 //#region change order status
+routes.put(
+  "/change-status-to-pending",
+  isAuth("data entry"),
+  changeStatusToPending
+);
 routes.put("/picked-to-store", isAuth("collector"), pickedToStore);
 routes.put("/in-store-request", isAuth("collector"), orderInStoreRequest);
 

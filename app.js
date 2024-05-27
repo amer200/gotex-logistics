@@ -32,6 +32,10 @@ app.post(
 );
 
 app.put(
+  "/order/change-status-to-pending",
+  uploadOrderData.array("images.pending")
+);
+app.put(
   "/order/picked-to-store",
   uploadOrderData.array("images.pickedToStore")
 );
