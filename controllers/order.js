@@ -770,3 +770,70 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok" });
 });
 //#endregion change order status
+
+exports.editOrder = asyncHandler(async (req, res) => {
+  const { id: userId, role } = req.user;
+  const { id: orderId } = req.params;
+  const {
+    recivername,
+    reciveraddress,
+    reciverphone,
+    sendername,
+    senderaddress,
+    senderphone,
+    price,
+    pieces,
+    description,
+    weight,
+  } = req.body;
+
+  let order = "";
+  if (role == "data entry") {
+    order = await Order.findOneAndUpdate(
+      { _id: orderId, createdby: userId },
+      {
+        recivername,
+        reciveraddress,
+        reciverphone,
+        sendername,
+        senderaddress,
+        senderphone,
+        price,
+        pieces,
+        description,
+        weight,
+      },
+      { new: true }
+    );
+  } else if (role == "admin") {
+    order = await Order.findOneAndUpdate(
+      { _id: orderId },
+      {
+        recivername,
+        reciveraddress,
+        reciverphone,
+        sendername,
+        senderaddress,
+        senderphone,
+        price,
+        pieces,
+        description,
+        weight,
+      },
+      { new: true }
+    );
+  }
+
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.status != "pending") {
+    return res.status(404).json({
+      msg: `Order status is not pending. Can't edit it`,
+    });
+  }
+
+  await order.save();
+
+  res.status(200).json({ msg: "ok", data: order });
+});

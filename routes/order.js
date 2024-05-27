@@ -23,6 +23,7 @@ const {
   inStoreRequestStatus,
   orderReceived,
   getInStoreRequests,
+  editOrder,
   changeStatusToPending,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
@@ -86,5 +87,7 @@ routes.put(
   isAuth(["admin", "storekeeper"]),
   addOrderToReceiver
 );
+
+routes.put("/edit-order/:id", isAuth(["data entry", "admin"]), editOrder);
 
 module.exports = routes;
