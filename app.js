@@ -57,6 +57,10 @@ app.put(
 );
 app.put("/order/order-received", uploadOrderData.array("images.received"));
 app.put("/order/cancel-order", uploadOrderData.array("images.canceled"));
+app.put(
+  "/order/cancel-order-by-collector",
+  uploadOrderData.array("images.canceled")
+);
 app.put("/order/return-order/:id", uploadOrderData.array("images.return"));
 
 // Middlewares

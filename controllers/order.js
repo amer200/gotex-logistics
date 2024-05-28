@@ -729,6 +729,7 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok" });
 });
 
+// By User or Admin
 exports.cancelOrder = asyncHandler(async (req, res) => {
   const { id: userId, role } = req.user;
   const { orderId } = req.body;
@@ -736,8 +737,6 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
   let order = "";
   if (role == "data entry") {
     order = await Order.findOne({ _id: orderId, createdby: userId });
-  } else if (role == "collector") {
-    order = await Order.findOne({ _id: orderId, pickedby: userId });
   } else if (role == "admin") {
     order = await Order.findOne({ _id: orderId });
   }
@@ -769,8 +768,54 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
 
   res.status(200).json({ msg: "ok" });
 });
+
+/**By Collector. Can cancel order after three days from creating it
+ *  (in pending status == sender doesn't response). */
+exports.cancelOrderByCollector = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+
+  const order = await Order.findOne({ _id: orderId, pickedby: userId });
+
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.status == "canceled") {
+    return res.status(404).json({
+      msg: `Order is already canceled`,
+    });
+  }
+  if (order.status != "pending") {
+    return res.status(404).json({
+      msg: `Order status is not pending. Can't cancel it`,
+    });
+  }
+
+  const daysPassed = Math.floor(
+    (new Date() - order.createdAt) / (1000 * 60 * 60 * 24)
+  );
+  if (daysPassed < 3) {
+    return res.status(404).json({
+      msg: `Can't cancel order within 3 days of creating it.`,
+    });
+  }
+
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  order.status = "canceled";
+  order.images.canceled = images;
+  await order.save();
+
+  res.status(200).json({ msg: "ok" });
+});
 //#endregion change order status
 
+/** By User */
 exports.editOrder = asyncHandler(async (req, res) => {
   const { id: userId, role } = req.user;
   const { id: orderId } = req.params;
