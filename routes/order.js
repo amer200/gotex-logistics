@@ -23,6 +23,9 @@ const {
   inStoreRequestStatus,
   orderReceived,
   getInStoreRequests,
+  editOrder,
+  changeStatusToPending,
+  cancelOrderByCollector,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -47,6 +50,11 @@ routes.get(
 );
 
 //#region change order status
+routes.put(
+  "/change-status-to-pending",
+  isAuth("data entry"),
+  changeStatusToPending
+);
 routes.put("/picked-to-store", isAuth("collector"), pickedToStore);
 routes.put("/in-store-request", isAuth("collector"), orderInStoreRequest);
 
@@ -60,10 +68,11 @@ routes.put(
 
 routes.put("/picked-to-client", isAuth("receiver"), pickedToClient);
 routes.put("/order-received", isAuth("receiver"), orderReceived);
+routes.put("/cancel-order", isAuth(["data entry", "admin"]), cancelOrder);
 routes.put(
-  "/cancel-order",
-  isAuth(["data entry", "admin", "collector"]),
-  cancelOrder
+  "/cancel-order-by-collector",
+  isAuth("collector"),
+  cancelOrderByCollector
 );
 //#endregion change order status
 
@@ -80,5 +89,7 @@ routes.put(
   isAuth(["admin", "storekeeper"]),
   addOrderToReceiver
 );
+
+routes.put("/edit-order/:id", isAuth(["data entry", "admin"]), editOrder);
 
 module.exports = routes;

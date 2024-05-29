@@ -305,14 +305,12 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   }
   if (order.status != "pick to client") {
     return res.status(404).json({
-      msg: `Order status should be "pick to client" to make this request`,
+      msg: `Order status should be "pick to client" to do this request`,
     });
   }
 
   order.isreturn = true;
-  order.images = images;
   order.status = "in store";
-  createPdf(order, true);
 
   // swap data for sender and receiver
   // made picked by to delivered
@@ -334,8 +332,10 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   order.reciveraddress = receiver.address;
   order.reciverphone = receiver.phone;
   order.reciverdistrict = receiver.district;
-
+  createPdf(order, false);
   await addOrderToCarrier(order, "receiver", req.io); // add new receiver with same city of sender
+
+  order.images.return = images;
   await order.save();
 
   res.status(200).json({ msg: "ok", data: order });
@@ -533,6 +533,43 @@ exports.addOrderToReceiver = asyncHandler(async (req, res) => {
 });
 
 //#region change order status
+// By Data Entry or Admin. To change order status to pending after canceling order.
+exports.changeStatusToPending = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+  const prevStatus = "canceled";
+  const changeStatusTo = "pending";
+
+  const order = await Order.findOne({ _id: orderId, createdby: userId });
+
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.status == changeStatusTo) {
+    return res.status(400).json({
+      msg: `Order status is already "${changeStatusTo}"`,
+    });
+  }
+  if (order.status != prevStatus) {
+    return res.status(404).json({
+      msg: `Order status should be ${prevStatus} to change it to ${changeOrderStatus}`,
+    });
+  }
+
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  order.status = "pending";
+  order.images.pending = images;
+  await order.save();
+
+  res.status(200).json({ msg: "ok" });
+});
+
 // By Collector
 exports.pickedToStore = asyncHandler(async (req, res) => {
   const userId = req.user.id;
@@ -543,6 +580,16 @@ exports.pickedToStore = asyncHandler(async (req, res) => {
   const order = await Order.findOne({ _id: orderId, pickedby: userId });
 
   await changeOrderStatus(order, prevStatus, changeStatusTo);
+
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  order.images.pickedToStore = images;
+  await order.save();
 
   res.status(200).json({ msg: "ok" });
 });
@@ -555,26 +602,37 @@ exports.orderInStoreRequest = asyncHandler(async (req, res) => {
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
   }
+  if (["received", "canceled"].includes(order.status)) {
+    return res.status(400).json({
+      msg: `Order is ${order.status}. Can't do this request.`,
+    });
+  }
   if (order.status != "pick to store") {
     return res.status(404).json({
-      msg: `Order status should be "pick to store" to make this request`,
+      msg: `Order status should be "pick to store" to do this request`,
+    });
+  }
+
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
     });
   }
 
   order.inStore.request = true;
+  order.images.inStoreRequest = images;
   await order.save();
+
   res.status(200).json({ msg: "ok" });
 });
 
 // By Store Keeper
-/* to get in store requests for storekeeper that is in the same city as the sender city*/
+/* to get in store requests for storekeeper (storekeeper in the same city as the sender city)*/
 exports.getInStoreRequests = asyncHandler(async (req, res) => {
   const userId = req.user.id;
 
   const storekeeper = await Storekeeper.findById(userId);
-  if (!storekeeper) {
-    return res.status(404).json({ msg: "Store keeper is not found" });
-  }
 
   const orders = await Order.find({
     "inStore.request": true,
@@ -591,31 +649,36 @@ exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
   }
-
-  const storekeeper = await Storekeeper.findById(userId);
-  if (!storekeeper) {
-    return res.status(404).json({ msg: "Store keeper is not found" });
+  if (!order.inStore.request) {
+    return res.status(404).json({ msg: "No request for this order" });
   }
-  if (storekeeper.city != order.sendercity) {
-    return res.status(404).json({ msg: "Can't access this order" });
-  }
-
   if (order.status == "in store") {
     return res.status(400).json({
       err: "This order is already in store",
     });
   }
 
-  if (order.inStore.request) {
-    order.inStore.requestStatus = requestStatus;
-    if (requestStatus == "accepted") {
-      order.status = "in store";
-
-      addOrderToCarrier(order, "receiver", req.io);
-    }
-
-    await order.save();
+  const storekeeper = await Storekeeper.findById(userId);
+  if (storekeeper.city != order.sendercity) {
+    return res.status(404).json({ msg: "Can't access this order" });
   }
+
+  order.inStore.requestStatus = requestStatus;
+  if (requestStatus == "accepted") {
+    order.status = "in store";
+
+    await addOrderToCarrier(order, "receiver", req.io);
+  }
+
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  order.images.inStoreRequestStatus = images;
+  await order.save();
 
   res.status(200).json({ msg: "ok" });
 });
@@ -631,6 +694,16 @@ exports.pickedToClient = asyncHandler(async (req, res) => {
 
   await changeOrderStatus(order, prevStatus, changeStatusTo);
 
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  order.images.pickedToClient = images;
+  await order.save();
+
   res.status(200).json({ msg: "ok" });
 });
 exports.orderReceived = asyncHandler(async (req, res) => {
@@ -643,12 +716,44 @@ exports.orderReceived = asyncHandler(async (req, res) => {
 
   await changeOrderStatus(order, prevStatus, changeStatusTo);
 
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  order.images.received = images;
+  await order.save();
+
   res.status(200).json({ msg: "ok" });
 });
 
+// By User or Admin
 exports.cancelOrder = asyncHandler(async (req, res) => {
   const { id: userId, role } = req.user;
   const { orderId } = req.body;
+
+  let order = "";
+  if (role == "data entry") {
+    order = await Order.findOne({ _id: orderId, createdby: userId });
+  } else if (role == "admin") {
+    order = await Order.findOne({ _id: orderId });
+  }
+
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.status == "canceled") {
+    return res.status(404).json({
+      msg: `Order is already canceled`,
+    });
+  }
+  if (order.status != "pending") {
+    return res.status(404).json({
+      msg: `Order status is not pending. Can't cancel it`,
+    });
+  }
 
   let images = [];
   if (req.files) {
@@ -657,32 +762,123 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  let order = "";
-  if (role == "data entry") {
-    order = await Order.findOne({ _id: orderId, createdby: userId });
-  } else if (role == "collector") {
-    order = await Order.findOne({ _id: orderId, pickedby: userId });
-  } else if (role == "admin") {
-    order = await Order.findOne({ _id: orderId });
-  }
+  order.status = "canceled";
+  order.images.canceled = images;
+  await order.save();
+
+  res.status(200).json({ msg: "ok" });
+});
+
+/**By Collector. Can cancel order after three days from creating it
+ *  (in pending status == sender doesn't response). */
+exports.cancelOrderByCollector = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.body;
+
+  const order = await Order.findOne({ _id: orderId, pickedby: userId });
 
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
-  }
-  if (["in store", "pick to client", "received"].includes(order.status)) {
-    return res.status(404).json({
-      msg: `Order status is "${order.status}", can't cancel it`,
-    });
   }
   if (order.status == "canceled") {
     return res.status(404).json({
       msg: `Order is already canceled`,
     });
   }
+  if (order.status != "pending") {
+    return res.status(404).json({
+      msg: `Order status is not pending. Can't cancel it`,
+    });
+  }
+
+  const daysPassed = Math.floor(
+    (new Date() - order.createdAt) / (1000 * 60 * 60 * 24)
+  );
+  if (daysPassed < 3) {
+    return res.status(404).json({
+      msg: `Can't cancel order within 3 days of creating it.`,
+    });
+  }
+
+  let images = [];
+  if (req.files) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
 
   order.status = "canceled";
-  order.images = images;
+  order.images.canceled = images;
   await order.save();
+
   res.status(200).json({ msg: "ok" });
 });
 //#endregion change order status
+
+/** By User */
+exports.editOrder = asyncHandler(async (req, res) => {
+  const { id: userId, role } = req.user;
+  const { id: orderId } = req.params;
+  const {
+    recivername,
+    reciveraddress,
+    reciverphone,
+    sendername,
+    senderaddress,
+    senderphone,
+    price,
+    pieces,
+    description,
+    weight,
+  } = req.body;
+
+  let order = "";
+  if (role == "data entry") {
+    order = await Order.findOneAndUpdate(
+      { _id: orderId, createdby: userId },
+      {
+        recivername,
+        reciveraddress,
+        reciverphone,
+        sendername,
+        senderaddress,
+        senderphone,
+        price,
+        pieces,
+        description,
+        weight,
+      },
+      { new: true }
+    );
+  } else if (role == "admin") {
+    order = await Order.findOneAndUpdate(
+      { _id: orderId },
+      {
+        recivername,
+        reciveraddress,
+        reciverphone,
+        sendername,
+        senderaddress,
+        senderphone,
+        price,
+        pieces,
+        description,
+        weight,
+      },
+      { new: true }
+    );
+  }
+
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.status != "pending") {
+    return res.status(404).json({
+      msg: `Order status is not pending. Can't edit it`,
+    });
+  }
+
+  await order.save();
+
+  res.status(200).json({ msg: "ok", data: order });
+});

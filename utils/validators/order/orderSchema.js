@@ -29,6 +29,27 @@ const orderSchema = {
         "canceled",
       ],
     },
+    images: {
+      type: "object",
+      properties: {
+        pending: { type: "array" },
+        pickedToStore: { type: "array" },
+        inStoreRequest: { type: "array" },
+        inStoreRequestStatus: { type: "array" },
+        inStore: { type: "array" },
+        pickedToClient: { type: "array" },
+        received: { type: "array" },
+        canceled: { type: "array" },
+        return: { type: "array" },
+      },
+    },
+    inStore: {
+      type: "object",
+      properties: {
+        request: { type: "boolean" },
+        requestStatus: { type: "string" },
+      },
+    },
   },
 
   required: [
