@@ -26,6 +26,9 @@ const {
   editOrder,
   changeStatusToPending,
   cancelOrderByCollector,
+  problemRequest,
+  getOrdersWithProblemRequests,
+  closeProblem,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -91,5 +94,13 @@ routes.put(
 );
 
 routes.put("/edit-order/:id", isAuth(["data entry", "admin"]), editOrder);
+
+routes.put("/problem-request", isAuth("storekeeper"), problemRequest);
+routes.get(
+  "/get-problem-requests",
+  isAuth(["admin", "tracker"]),
+  getOrdersWithProblemRequests
+);
+routes.put("/close-problem", isAuth(["admin", "tracker"]), closeProblem);
 
 module.exports = routes;

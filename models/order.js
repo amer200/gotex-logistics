@@ -95,6 +95,19 @@ const orderSchema = new mongoose.Schema(
         default: "pending",
       },
     },
+    problem: {
+      request: {
+        type: Boolean,
+        default: false,
+      },
+      description: String,
+      images: [String],
+      status: {
+        type: String,
+        enum: ["pending", "closed"],
+        default: "pending",
+      },
+    },
   },
   { versionKey: false, strict: false, timestamps: true }
 );
