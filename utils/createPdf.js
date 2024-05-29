@@ -8,7 +8,6 @@ const bwipjs = require("bwip-js");
 exports.createPdf = (data, isreturn) => {
   const doc = new PDFDocument();
   const customFont = fs.readFileSync(`./Amiri-Regular.ttf`);
-  console.log(data.senderaddress.split(" "));
   const width = doc.page.width;
   const height = doc.page.height;
   doc.lineWidth(2); // You can adjust the thickness as needed
