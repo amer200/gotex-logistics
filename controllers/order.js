@@ -834,39 +834,9 @@ exports.editOrder = asyncHandler(async (req, res) => {
 
   let order = "";
   if (role == "data entry") {
-    order = await Order.findOneAndUpdate(
-      { _id: orderId, createdby: userId },
-      {
-        recivername,
-        reciveraddress,
-        reciverphone,
-        sendername,
-        senderaddress,
-        senderphone,
-        price,
-        pieces,
-        description,
-        weight,
-      },
-      { new: true }
-    );
+    order = await Order.findOne({ _id: orderId, createdby: userId });
   } else if (role == "admin") {
-    order = await Order.findOneAndUpdate(
-      { _id: orderId },
-      {
-        recivername,
-        reciveraddress,
-        reciverphone,
-        sendername,
-        senderaddress,
-        senderphone,
-        price,
-        pieces,
-        description,
-        weight,
-      },
-      { new: true }
-    );
+    order = await Order.findOne({ _id: orderId });
   }
 
   if (!order) {
@@ -877,6 +847,17 @@ exports.editOrder = asyncHandler(async (req, res) => {
       msg: `Order status is not pending. Can't edit it`,
     });
   }
+
+  order.recivername = recivername;
+  order.reciveraddress = reciveraddress;
+  order.reciverphone = reciverphone;
+  order.sendername = sendername;
+  order.senderaddress = senderaddress;
+  order.senderphone = senderphone;
+  order.price = price;
+  order.pieces = pieces;
+  order.description = description;
+  order.weight = weight;
 
   await order.save();
 
