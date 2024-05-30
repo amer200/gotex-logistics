@@ -533,14 +533,19 @@ exports.addOrderToReceiver = asyncHandler(async (req, res) => {
 });
 
 //#region change order status
-// By Data Entry or Admin. To change order status to pending after canceling order.
+// By User or Admin. To change order status to pending after canceling order.
 exports.changeStatusToPending = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const { id: userId, role } = req.user;
   const { orderId } = req.body;
   const prevStatus = "canceled";
   const changeStatusTo = "pending";
 
-  const order = await Order.findOne({ _id: orderId, createdby: userId });
+  let order = "";
+  if (role == "data entry") {
+    order = await Order.findOne({ _id: orderId, createdby: userId });
+  } else if (role == "admin") {
+    order = await Order.findOne({ _id: orderId });
+  }
 
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });

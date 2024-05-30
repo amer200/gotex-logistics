@@ -55,7 +55,7 @@ routes.get(
 //#region change order status
 routes.put(
   "/change-status-to-pending",
-  isAuth("data entry"),
+  isAuth(["data entry", "admin"]),
   changeStatusToPending
 );
 routes.put("/picked-to-store", isAuth("collector"), pickedToStore);
