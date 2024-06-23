@@ -101,6 +101,7 @@ const orderSchema = new mongoose.Schema(
         default: false,
       },
       description: String,
+      closedDescription: String,
       images: [String],
       status: {
         type: String,

@@ -916,17 +916,18 @@ exports.getOrdersWithProblemRequests = asyncHandler(async (req, res) => {
 });
 // By Admin or Tracker
 exports.closeProblem = asyncHandler(async (req, res) => {
-  const { orderId } = req.body;
+  const { orderId, description } = req.body;
 
   const order = await Order.findById(orderId);
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
   }
   if (!order.problem.request) {
-    return res.status(404).json({ msg: "No request for this order" });
+    return res.status(404).json({ msg: "No problem request for this order" });
   }
 
   order.problem.status = "closed";
+  order.problem.closedDescription = description;
   await order.save();
 
   res.status(200).json({ msg: "ok" });
