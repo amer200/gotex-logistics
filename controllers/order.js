@@ -587,9 +587,13 @@ exports.pickedToStore = asyncHandler(async (req, res) => {
   await changeOrderStatus(order, prevStatus, changeStatusTo);
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
+    });
+  } else {
+    return res.status(404).json({
+      msg: `images are required`,
     });
   }
 
@@ -722,9 +726,13 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   await changeOrderStatus(order, prevStatus, changeStatusTo);
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
+    });
+  } else {
+    return res.status(404).json({
+      msg: `images are required`,
     });
   }
 
