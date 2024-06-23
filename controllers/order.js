@@ -287,7 +287,7 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
     });
@@ -562,7 +562,7 @@ exports.changeStatusToPending = asyncHandler(async (req, res) => {
   }
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
     });
@@ -623,7 +623,7 @@ exports.orderInStoreRequest = asyncHandler(async (req, res) => {
   }
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
     });
@@ -680,7 +680,7 @@ exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
   }
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
     });
@@ -704,7 +704,7 @@ exports.pickedToClient = asyncHandler(async (req, res) => {
   await changeOrderStatus(order, prevStatus, changeStatusTo);
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
     });
@@ -745,7 +745,7 @@ exports.orderReceived = asyncHandler(async (req, res) => {
 // By User or Admin
 exports.cancelOrder = asyncHandler(async (req, res) => {
   const { id: userId, role } = req.user;
-  const { orderId } = req.body;
+  const { orderId, description } = req.body;
 
   let order = "";
   if (role == "data entry") {
@@ -769,14 +769,20 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
   }
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
     });
   }
 
   order.status = "canceled";
-  order.images.canceled = images;
+  if (role == "data entry") {
+    order.images.canceled.dataEntry = images;
+    order.cancelDescription.dataEntry = description;
+  } else if (role == "admin") {
+    order.images.canceled.admin = images;
+    order.cancelDescription.admin = description;
+  }
   await order.save();
 
   res.status(200).json({ msg: "ok" });
@@ -786,7 +792,7 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
  *  (in pending status == sender doesn't response). */
 exports.cancelOrderByCollector = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const { orderId } = req.body;
+  const { orderId, description } = req.body;
 
   const order = await Order.findOne({ _id: orderId, pickedby: userId });
 
@@ -814,14 +820,15 @@ exports.cancelOrderByCollector = asyncHandler(async (req, res) => {
   }
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
     });
   }
 
   order.status = "canceled";
-  order.images.canceled = images;
+  order.images.canceled.collector = images;
+  order.cancelDescription.collector = description;
   await order.save();
 
   res.status(200).json({ msg: "ok" });
@@ -899,7 +906,7 @@ exports.problemRequest = asyncHandler(async (req, res) => {
   }
 
   let images = [];
-  if (req.files) {
+  if (req.files && req.files[0]) {
     req.files.forEach((f) => {
       images.push(f.path);
     });

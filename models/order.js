@@ -55,7 +55,11 @@ const orderSchema = new mongoose.Schema(
     deliveredby: { type: mongoose.Schema.Types.ObjectId, ref: "Carrier" },
     storekeeper: { type: mongoose.Schema.Types.ObjectId, ref: "Storekeeper" },
     billcode: String,
-    canceldescription: String,
+    cancelDescription: {
+      dataEntry: String,
+      admin: String,
+      collector: String,
+    },
     isreturn: {
       type: Boolean,
       default: false,
@@ -81,7 +85,11 @@ const orderSchema = new mongoose.Schema(
       inStore: [String],
       pickedToClient: [String],
       received: [String],
-      canceled: [String],
+      canceled: {
+        dataEntry: [String],
+        admin: [String],
+        collector: [String],
+      },
       return: [String],
     },
     inStore: {
