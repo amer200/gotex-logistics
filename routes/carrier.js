@@ -17,6 +17,7 @@ const {
   setNewPassword,
   resendVerifyEmail,
   getReceivers,
+  edit,
 } = require("../controllers/carrier");
 
 // with Admin Auth
@@ -41,5 +42,7 @@ routes.post(
   verifyForgetPasswordCode
 );
 routes.post("/set-new-password", isVerifiedCodeToken(Carrier), setNewPassword);
+
+routes.post("/:id", edit);
 
 module.exports = routes;

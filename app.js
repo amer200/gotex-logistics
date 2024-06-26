@@ -31,6 +31,15 @@ app.post(
   ])
 );
 
+// edit
+app.post(
+  "/carrier/:id",
+  uploadCarrierData.fields([
+    { name: "photo", maxCount: 1 },
+    { name: "papers", maxCount: 3 }, // Allow up to 3 papers
+  ])
+);
+
 app.put(
   "/order/change-status-to-pending",
   uploadOrderData.array("images.pending")

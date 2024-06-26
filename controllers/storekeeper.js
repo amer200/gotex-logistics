@@ -147,3 +147,20 @@ exports.addOrderToStore = asyncHandler(async (req, res) => {
 
   res.status(200).json({ msg: "ok", data: order });
 });
+
+// by admin
+exports.edit = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { mobile, address, city, firstName, lastName } = req.body;
+
+  const storeKeeper = await StoreKeeper.findOneAndUpdate(
+    { _id: id },
+    { mobile, address, city, firstName, lastName },
+    { new: true }
+  );
+  if (!storeKeeper) {
+    return res.status(404).json({ msg: `storeKeeper is not found` });
+  }
+
+  res.status(200).json({ data: storeKeeper });
+});

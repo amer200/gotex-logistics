@@ -26,7 +26,7 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
   if (req.files) {
     photo = req.files.photo && req.files.photo[0].path;
 
-    if (req.files.papers) {
+    if (req.files.papers && req.files.papers[0]) {
       req.files.papers.forEach((f) => {
         papers.push(f.path);
       });
@@ -249,4 +249,55 @@ exports.setNewPassword = asyncHandler(async (req, res) => {
   await carrier.save();
 
   res.status(200).json({ msg: "Password changed successfully" });
+});
+
+// by admin
+exports.edit = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.query;
+
+  const {
+    mobile,
+    nid,
+    address,
+    city,
+    firstName,
+    lastName,
+    deliveryCity,
+    deliveryDistricts,
+  } = req.body;
+
+  let photo = "";
+  let papers = [];
+  if (req.files) {
+    photo = req.files.photo && req.files.photo[0].path;
+
+    if (req.files.papers && req.files.papers[0]) {
+      req.files.papers.forEach((f) => {
+        papers.push(f.path);
+      });
+    }
+  }
+
+  const carrier = await Carrier.findOneAndUpdate(
+    { _id: id, role },
+    {
+      mobile,
+      nid,
+      address,
+      city,
+      firstName,
+      lastName,
+      photo,
+      papers,
+      deliveryCity,
+      deliveryDistricts,
+    },
+    { new: true }
+  );
+  if (!carrier) {
+    return res.status(404).json({ msg: `carrier is not found` });
+  }
+
+  res.status(200).json({ data: carrier });
 });
