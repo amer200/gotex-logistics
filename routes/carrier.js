@@ -43,6 +43,6 @@ routes.post(
 );
 routes.post("/set-new-password", isVerifiedCodeToken(Carrier), setNewPassword);
 
-routes.post("/:id", edit);
+routes.post("/:id", isAuth("admin"), edit);
 
 module.exports = routes;

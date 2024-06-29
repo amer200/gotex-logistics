@@ -23,6 +23,6 @@ routes.patch(
   addOrderToStore
 );
 
-routes.post("/:id", edit);
+routes.post("/:id", isAuth("admin"), edit);
 
 module.exports = routes;
