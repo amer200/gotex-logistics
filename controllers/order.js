@@ -10,6 +10,9 @@ const {
 } = require("../utils/pagination");
 const Storekeeper = require("../models/storekeeper");
 const changeOrderStatus = require("../utils/changeOrderStatus");
+const cron = require("node-cron");
+
+const scheduleExpression = "0 0 * * *"; // Every day at midnight (12:00 AM)
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const {
@@ -616,7 +619,7 @@ exports.orderInStoreRequest = asyncHandler(async (req, res) => {
       msg: `Order is ${order.status}. Can't do this request.`,
     });
   }
-  if (order.status != "pick to store") {
+  if (!["pick to store", "late to store"].includes(order.status)) {
     return res.status(404).json({
       msg: `Order status should be "pick to store" to do this request`,
     });
@@ -947,3 +950,31 @@ exports.closeProblem = asyncHandler(async (req, res) => {
 
   res.status(200).json({ msg: "ok" });
 });
+
+const lateToStoreOrders = asyncHandler(async (req, res) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let tomorrow = new Date();
+  tomorrow = new Date(tomorrow.setDate(tomorrow.getDate() + 1));
+  tomorrow.setHours(0, 0, 0, 0);
+  // console.log(today, tomorrow);
+
+  const orders = await Order.updateMany(
+    {
+      status: "pick to store",
+      updatedAt: { $gte: today, $lt: tomorrow },
+    },
+    { status: "late to store" }
+  );
+
+  res.status(200).json({ msg: "ok" });
+});
+exports.getLateToStoreOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({
+    status: "late to store",
+  });
+
+  res.status(200).json({ result: orders.length, orders });
+});
+
+// cron.schedule(scheduleExpression, lateToStoreOrders);

@@ -125,7 +125,7 @@ exports.getAllStoreKeepers = asyncHandler(async (req, res) => {
 });
 exports.addOrderToStore = asyncHandler(async (req, res) => {
   const { ordernumber } = req.params;
-  const prevStatus = "pick to store";
+  const prevStatus = ["pick to store", "late to store"];
   const changeStatusTo = "in store";
 
   const order = await Order.findOne({ ordernumber });

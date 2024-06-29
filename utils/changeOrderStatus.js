@@ -16,7 +16,14 @@ const changeOrderStatus = async (order, prevStatus, changeStatusTo) => {
     throw new ApiError(400, `Order status is already "${changeStatusTo}"`);
   }
 
-  if (order.status != prevStatus) {
+  if (Array.isArray(prevStatus)) {
+    if (!prevStatus.includes(order.status)) {
+      throw new ApiError(
+        400,
+        `Order status should be "${prevStatus}" to change it to "${changeStatusTo}"`
+      );
+    }
+  } else if (order.status != prevStatus) {
     throw new ApiError(
       400,
       `Order status should be "${prevStatus}" to change it to "${changeStatusTo}"`

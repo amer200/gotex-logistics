@@ -69,6 +69,7 @@ const orderSchema = new mongoose.Schema(
       enum: [
         "pending",
         "pick to store",
+        "late to store",
         "in store",
         "pick to client",
         "received",
@@ -129,6 +130,7 @@ orderSchema.pre("save", function (next) {
 });
 orderSchema.index({ status: 1 }, { unique: false });
 orderSchema.index({ createdAt: -1 }, { unique: false });
+orderSchema.index({ updatedAt: -1 }, { unique: false });
 orderSchema.index({ pickedby: 1 }, { unique: false });
 orderSchema.index({ ordernumber: 1 }, { unique: true });
 
