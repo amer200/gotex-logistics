@@ -12,7 +12,7 @@ const Storekeeper = require("../models/storekeeper");
 const changeOrderStatus = require("../utils/changeOrderStatus");
 const cron = require("node-cron");
 
-const scheduleExpression = "*/10 * * * * *"; // Every day at midnight (12:00 AM)
+const scheduleExpression = "0 0 * * *"; // Every day at midnight (12:00 AM)
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const {
