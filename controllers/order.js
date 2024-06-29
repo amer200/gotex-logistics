@@ -12,7 +12,7 @@ const Storekeeper = require("../models/storekeeper");
 const changeOrderStatus = require("../utils/changeOrderStatus");
 const cron = require("node-cron");
 
-const scheduleExpression = "0 0 * * *"; // Every day at midnight (12:00 AM)
+const scheduleExpression = "*/10 * * * * *"; // Every day at midnight (12:00 AM)
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const {
@@ -952,17 +952,14 @@ exports.closeProblem = asyncHandler(async (req, res) => {
 });
 
 exports.lateToStoreOrdersTest = asyncHandler(async (req, res) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let tomorrow = new Date();
-  tomorrow = new Date(tomorrow.setDate(tomorrow.getDate() + 1));
-  tomorrow.setHours(0, 0, 0, 0);
-  // console.log(today, tomorrow);
+  let endOfDay = new Date();
+  endOfDay = new Date(endOfDay.setDate(endOfDay.getDate() + 1));
+  endOfDay.setHours(0, 0, 0, 0);
 
   const orders = await Order.updateMany(
     {
       status: "pick to store",
-      updatedAt: { $gte: today, $lt: tomorrow },
+      updatedAt: { $lt: endOfDay },
     },
     { status: "late to store" }
   );
@@ -970,17 +967,14 @@ exports.lateToStoreOrdersTest = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok" });
 });
 const lateToStoreOrders = asyncHandler(async (req, res) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let tomorrow = new Date();
-  tomorrow = new Date(tomorrow.setDate(tomorrow.getDate() + 1));
-  tomorrow.setHours(0, 0, 0, 0);
-  // console.log(today, tomorrow);
+  let endOfDay = new Date();
+  endOfDay = new Date(endOfDay.setDate(endOfDay.getDate() + 1));
+  endOfDay.setHours(0, 0, 0, 0);
 
   const orders = await Order.updateMany(
     {
       status: "pick to store",
-      updatedAt: { $gte: today, $lt: tomorrow },
+      updatedAt: { $lt: endOfDay },
     },
     { status: "late to store" }
   );
