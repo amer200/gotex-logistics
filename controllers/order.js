@@ -951,6 +951,24 @@ exports.closeProblem = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok" });
 });
 
+exports.lateToStoreOrdersTest = asyncHandler(async (req, res) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let tomorrow = new Date();
+  tomorrow = new Date(tomorrow.setDate(tomorrow.getDate() + 1));
+  tomorrow.setHours(0, 0, 0, 0);
+  // console.log(today, tomorrow);
+
+  const orders = await Order.updateMany(
+    {
+      status: "pick to store",
+      updatedAt: { $gte: today, $lt: tomorrow },
+    },
+    { status: "late to store" }
+  );
+
+  res.status(200).json({ msg: "ok" });
+});
 const lateToStoreOrders = asyncHandler(async (req, res) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -977,4 +995,4 @@ exports.getLateToStoreOrders = asyncHandler(async (req, res) => {
   res.status(200).json({ result: orders.length, orders });
 });
 
-// cron.schedule(scheduleExpression, lateToStoreOrders);
+cron.schedule(scheduleExpression, lateToStoreOrders);
