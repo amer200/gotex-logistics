@@ -984,7 +984,7 @@ const lateToStoreOrders = asyncHandler(async (req, res) => {
 exports.getLateToStoreOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({
     status: "late to store",
-  });
+  }).sort({ updatedAt: -1 });
 
   res.status(200).json({ result: orders.length, orders });
 });
