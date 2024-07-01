@@ -951,21 +951,6 @@ exports.closeProblem = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok" });
 });
 
-exports.lateToStoreOrdersTest = asyncHandler(async (req, res) => {
-  let endOfDay = new Date();
-  endOfDay = new Date(endOfDay.setDate(endOfDay.getDate() + 1));
-  endOfDay.setHours(0, 0, 0, 0);
-
-  const orders = await Order.updateMany(
-    {
-      status: "pick to store",
-      updatedAt: { $lt: endOfDay },
-    },
-    { status: "late to store" }
-  );
-
-  res.status(200).json({ msg: "ok" });
-});
 const lateToStoreOrders = asyncHandler(async (req, res) => {
   let endOfDay = new Date();
   endOfDay = new Date(endOfDay.setDate(endOfDay.getDate() + 1));

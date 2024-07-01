@@ -30,7 +30,6 @@ const {
   getOrdersWithProblemRequests,
   closeProblem,
   getLateToStoreOrders,
-  lateToStoreOrdersTest,
 } = require("../controllers/order");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -105,7 +104,6 @@ routes.get(
 );
 routes.put("/close-problem", isAuth(["admin", "tracker"]), closeProblem);
 
-routes.put("/late", lateToStoreOrdersTest);
 routes.get("/late", isAuth(["admin", "storekeeper"]), getLateToStoreOrders);
 
 module.exports = routes;
