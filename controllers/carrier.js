@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Carrier = require("../models/carrier");
+const District = require("../models/district");
 const sendEmail = require("../utils/sendEmail");
 const genRandomNumber = require("./../utils/genRandomNumber");
 const salt = 10;
@@ -38,6 +39,22 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
     return res.status(409).json({
       msg: "Email is already used",
     });
+  }
+
+  const districts = await District.find({
+    district_id: { $in: deliveryDistricts },
+    used: true,
+  });
+
+  if (districts.length) {
+    return res.status(400).json({
+      msg: "District is already used",
+    });
+  } else {
+    await District.updateMany(
+      { district_id: { $in: deliveryDistricts } },
+      { $set: { used: true } }
+    );
   }
 
   const carrier = await Carrier.create({
