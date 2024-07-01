@@ -18,6 +18,7 @@ const trackerRoutes = require("./routes/tracker");
 
 const notificationRoutes = require("./routes/notification");
 const citiesRoute = require("./routes/cities");
+const districtsRoute = require("./routes/district");
 const globalErrorHandling = require("./middlewares/globalErrorHandling");
 
 dbConnection();
@@ -103,6 +104,7 @@ app.use("/store-keeper", storeKeeperRoutes);
 app.use("/tracker", trackerRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/cities", citiesRoute);
+app.use("/districts", districtsRoute);
 
 app.use(globalErrorHandling);
 
