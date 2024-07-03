@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const morgan = require("morgan");
 dotenv.config({ path: ".env" });
 const { dbConnection } = require("./db/mongoose");
 const initializeSocket = require("./utils/socketHandler");
@@ -80,6 +81,7 @@ app.use(express.static("upload"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.set("view engine", "ejs");
+app.use(morgan("combined"));
 
 app.use(
   cors({
