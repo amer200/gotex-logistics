@@ -34,7 +34,7 @@ app.post(
 );
 
 // edit
-app.post(
+app.put(
   "/carrier/:id",
   uploadCarrierData.fields([
     { name: "photo", maxCount: 1 },
@@ -108,7 +108,7 @@ app.use("/notifications", notificationRoutes);
 app.use("/cities", citiesRoute);
 app.use("/districts", districtsRoute);
 
-app.use(globalErrorHandling);
+// app.use(globalErrorHandling);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
