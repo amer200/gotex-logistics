@@ -26,10 +26,10 @@ const addOrderToCarrier = async (order, role, io) => {
   let orderArea = "";
   if (role == "collector") {
     orderStatusArr = ["pending", "pick to store"];
-    orderArea = order.senderdistrict;
+    orderArea = order.senderdistrictId;
   } else if (role == "receiver") {
     orderStatusArr = ["in store", "pick to client"];
-    orderArea = order.reciverdistrict;
+    orderArea = order.reciverdistrictId;
   }
 
   const query = {
