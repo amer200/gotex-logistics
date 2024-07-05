@@ -120,11 +120,11 @@ exports.createPdf = (data, isreturn) => {
     // Add CC with border
     if (data.paytype == "cc") {
       doc.moveTo(390, 160).lineTo(390, 300).lineWidth(2).stroke();
-      doc.fontSize(20).text(`PayType: CC`, 400, 185);
+      doc.fontSize(20).text(`PayType: CC`, 400, 225);
     } else {
       doc.moveTo(390, 160).lineTo(390, 300).lineWidth(2).stroke();
-      doc.fontSize(20).text(`PayType: Cod`, 400, 185);
-      doc.fontSize(18).text(`Price :${data.price} SAR`, 400, 210);
+      doc.fontSize(20).text(`PayType: Cod`, 400, 215);
+      doc.fontSize(18).text(`Price :${data.price} SAR`, 400, 230);
     }
     doc.end();
   });
