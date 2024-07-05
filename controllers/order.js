@@ -866,6 +866,7 @@ exports.editOrder = asyncHandler(async (req, res) => {
     return res.status(404).json({ msg: "Order is not found" });
   }
   if (order.status != "pending") {
+    createPdf(order, false);
     return res.status(404).json({
       msg: `Order status is not pending. Can't edit it`,
     });
