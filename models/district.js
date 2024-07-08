@@ -22,9 +22,9 @@ const districtSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    used: {
-      type: Boolean,
-      default: false,
+    usedBy: {
+      collector: { type: mongoose.Schema.Types.ObjectId, ref: "Carrier" },
+      receiver: { type: mongoose.Schema.Types.ObjectId, ref: "Carrier" },
     },
   },
   { versionKey: false, timestamps: true }

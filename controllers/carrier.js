@@ -41,20 +41,24 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
     });
   }
 
-  const districts = await District.find({
-    district_id: { $in: deliveryDistricts },
-    used: true,
-  });
+  // check that districts are not used
+  let districts = [];
+  if (role == "collector") {
+    districts = await District.find({
+      district_id: { $in: deliveryDistricts },
+      "usedBy.collector": { $exists: true },
+    });
+  } else if (role == "receiver") {
+    districts = await District.find({
+      district_id: { $in: deliveryDistricts },
+      "usedBy.receiver": { $exists: true },
+    });
+  }
 
   if (districts.length) {
     return res.status(400).json({
       msg: "District is already used",
     });
-  } else {
-    await District.updateMany(
-      { district_id: { $in: deliveryDistricts } },
-      { $set: { used: true } }
-    );
   }
 
   const carrier = await Carrier.create({
@@ -71,6 +75,19 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
     deliveryDistricts,
     role,
   });
+
+  // set usedBy with carrier id
+  if (role == "collector") {
+    await District.updateMany(
+      { district_id: { $in: deliveryDistricts } },
+      { $set: { "usedBy.collector": carrier._id } }
+    );
+  } else if (role == "receiver") {
+    await District.updateMany(
+      { district_id: { $in: deliveryDistricts } },
+      { $set: { "usedBy.receiver": carrier._id } }
+    );
+  }
 
   const response = await sendEmail(
     carrier.email,
