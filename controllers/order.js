@@ -327,6 +327,7 @@ exports.returnOrder = asyncHandler(async (req, res) => {
     address: order.senderaddress,
     city: order.sendercity,
     district: order.senderdistrict,
+    districtId: order.senderdistrictId,
     phone: order.senderphone,
   };
   order.sendername = order.recivername;
@@ -334,11 +335,13 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   order.senderaddress = order.reciveraddress;
   order.senderphone = order.reciverphone;
   order.senderdistrict = order.reciverdistrict;
+  order.senderdistrictId = order.reciverdistrictId;
   order.recivername = receiver.name;
   order.recivercity = receiver.city;
   order.reciveraddress = receiver.address;
   order.reciverphone = receiver.phone;
   order.reciverdistrict = receiver.district;
+  order.reciverdistrictId = receiver.districtId;
   createPdf(order, false);
   await addOrderToCarrier(order, "receiver", req.io); // add new receiver with same city of sender
 
