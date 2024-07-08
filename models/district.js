@@ -29,5 +29,7 @@ const districtSchema = new mongoose.Schema(
   },
   { versionKey: false, timestamps: true }
 );
+districtSchema.index({ city_id: 1 }, { unique: false });
+districtSchema.index({ name_ar: 1 }, { unique: false });
 
 module.exports = mongoose.model("District", districtSchema);
