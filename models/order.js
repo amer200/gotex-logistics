@@ -101,6 +101,13 @@ const orderSchema = new mongoose.Schema(
       },
       return: [String],
     },
+    gotex: {
+      request: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    client: { type: mongoose.Schema.Types.ObjectId, ref: "Client" },
     inStore: {
       request: {
         type: Boolean,
