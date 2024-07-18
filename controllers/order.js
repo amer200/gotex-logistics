@@ -2,7 +2,6 @@ const asyncHandler = require("express-async-handler");
 const Order = require("../models/order");
 const Carrier = require("../models/carrier");
 const Notification = require("../models/notifications");
-const { createPdf } = require("../utils/createPdf");
 const addOrderToCarrier = require("../utils/addOrderToCarrier");
 const {
   countDocsAfterFiltering,
@@ -11,232 +10,41 @@ const {
 const Storekeeper = require("../models/storekeeper");
 const changeOrderStatus = require("../utils/changeOrderStatus");
 const cron = require("node-cron");
+const orderServices = require("../services/order");
 
 const scheduleExpression = "0 21 * * *"; // Every day at midnight (12:00 AM)
 
 exports.createOrder = asyncHandler(async (req, res) => {
-  const {
-    sendername,
-    senderaddress,
-    sendercity,
-    senderdistrict,
-    senderdistrictId,
-    senderphone,
-    recivername,
-    reciveraddress,
-    recivercity,
-    reciverdistrict,
-    reciverdistrictId,
-    reciverphone,
-    paytype,
-    price,
-    weight,
-    pieces,
-    description,
-  } = req.body;
-
-  const createdby = req.user.id;
-
-  const order = await Order.create({
-    sendername,
-    senderaddress,
-    sendercity,
-    senderdistrict,
-    senderdistrictId,
-    senderphone,
-    recivername,
-    reciveraddress,
-    recivercity,
-    reciverdistrict,
-    reciverdistrictId,
-    reciverphone,
-    createdby,
-    paytype,
-    price,
-    weight,
-    pieces,
-    description,
-  });
-  createPdf(order, false);
-
-  await addOrderToCarrier(order, "collector", req.io);
-  await order.save();
+  const order = await orderServices.createOrder(req.body, req.user.id, req.io);
 
   res.json({ msg: "order created", data: order });
 });
 
+// by admin
 exports.getAllOrders = asyncHandler(async (req, res) => {
-  const page = +req.query.page || 1;
-  const limit = +req.query.limit || 30;
-  const skip = (page - 1) * limit;
-  const startDate = req.query.startDate || new Date("2000-01-01");
-  const endDate = req.query.endDate || new Date();
-  const {
-    ordernumber = "",
-    paytype = "",
-    status = "",
-    keyword = "",
-  } = req.query;
-
-  const lookupStages = [
-    {
-      // populate with user data
-      $lookup: {
-        from: "users", // collection name in mongoDB
-        localField: "createdby",
-        foreignField: "_id",
-        as: "user",
-      },
-    },
-    {
-      $lookup: {
-        from: "carriers",
-        localField: "pickedby",
-        foreignField: "_id",
-        as: "collector",
-      },
-    },
-    {
-      $lookup: {
-        from: "carriers",
-        localField: "deliveredby",
-        foreignField: "_id",
-        as: "receiver",
-      },
-    },
-    {
-      $lookup: {
-        from: "storekeepers",
-        localField: "storekeeper",
-        foreignField: "_id",
-        as: "storekeeper",
-      },
-    },
-  ];
-
-  let matchStage = {
-    $match: {
-      ordernumber: { $regex: ordernumber, $options: "i" },
-      paytype: { $regex: paytype, $options: "i" },
-      status: { $regex: status, $options: "i" },
-      updatedAt: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      },
-    },
-  };
-
-  if (keyword) {
-    matchStage["$match"]["$or"] = [
-      { "user.firstName": { $regex: keyword, $options: "i" } },
-      { "user.lastName": { $regex: keyword, $options: "i" } },
-      { "user.email": { $regex: keyword, $options: "i" } },
-      { "user.mobile": { $regex: keyword, $options: "i" } },
-      { "collector.firstName": { $regex: keyword, $options: "i" } },
-      { "collector.lastName": { $regex: keyword, $options: "i" } },
-      { "collector.email": { $regex: keyword, $options: "i" } },
-      { "collector.mobile": { $regex: keyword, $options: "i" } },
-      { "receiver.firstName": { $regex: keyword, $options: "i" } },
-      { "receiver.lastName": { $regex: keyword, $options: "i" } },
-      { "receiver.email": { $regex: keyword, $options: "i" } },
-      { "receiver.mobile": { $regex: keyword, $options: "i" } },
-      { "storekeeper.firstName": { $regex: keyword, $options: "i" } },
-      { "storekeeper.lastName": { $regex: keyword, $options: "i" } },
-      { "storekeeper.email": { $regex: keyword, $options: "i" } },
-      { "storekeeper.mobile": { $regex: keyword, $options: "i" } },
-    ];
-  }
-
-  const projectStage = {
-    $project: {
-      __v: 0,
-      createdby: 0,
-      pickedby: 0,
-      deliveredby: 0,
-      // "storekeeper": 0,
-
-      "user.role": 0,
-      "user.nid": 0,
-      "user.address": 0,
-      "user.city": 0,
-      "user.verified": 0,
-      "user.password": 0,
-
-      "collector.role": 0,
-      "collector.nid": 0,
-      "collector.address": 0,
-      "collector.city": 0,
-      "collector.verified": 0,
-      "collector.password": 0,
-      "collector.photo": 0,
-      "collector.papers": 0,
-      "collector.area": 0,
-      "collector.orders": 0,
-
-      "receiver.role": 0,
-      "receiver.nid": 0,
-      "receiver.address": 0,
-      "receiver.city": 0,
-      "receiver.verified": 0,
-      "receiver.password": 0,
-      "receiver.photo": 0,
-      "receiver.papers": 0,
-      "receiver.area": 0,
-      "receiver.orders": 0,
-
-      "storekeeper.role": 0,
-      "storekeeper.nid": 0,
-      "storekeeper.address": 0,
-      "storekeeper.city": 0,
-      "storekeeper.verified": 0,
-      "storekeeper.password": 0,
-    },
-  };
-
-  const ordersPerPage = await Order.aggregate([
-    ...lookupStages,
-    matchStage,
-    { $sort: { updatedAt: -1 } },
-    { $skip: skip },
-    { $limit: limit },
-    projectStage,
-  ]);
-
-  const totalCount = await countDocsAfterFiltering(
-    Order,
-    lookupStages,
-    matchStage
+  const { pagination, ordersPerPage } = await orderServices.getAllOrders(
+    req.query
   );
-  const pagination = createPaginationObj(page, limit, totalCount);
 
   res.status(200).json({
     result: ordersPerPage.length,
-    pagination,
+    pagination: pagination,
     data: ordersPerPage,
   });
 });
 
 exports.getOrder = asyncHandler(async (req, res) => {
-  const id = req.params.id;
-  const url = await Order.findOne({ _id: id }, { ordernumber: 1, _id: 0 });
+  const { url } = await orderServices.getOrder(req.params.id);
 
-  if (!url) {
-    return res.status(409).json({ msg: "Order is not found" });
-  }
-
-  res.status(200).json({
-    url: `upload/${url.ordernumber}.pdf`,
-  });
+  res.status(200).json({ url });
 });
 
 exports.getUserOrders = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
-  const orders = await Order.find({ createdby: userId }).sort({
-    createdAt: -1,
-  });
+  const orders = await orderServices.getUserOrders(req.user.id);
 
   res.status(200).json({ msg: "ok", data: orders });
 });
+
 exports.getCollectorOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const orders = await Order.find({ pickedby: userId }).sort({ updatedAt: -1 });
@@ -265,88 +73,17 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
 
 exports.trackOrder = asyncHandler(async (req, res) => {
   const { ordernumber } = req.params;
-
-  const order = await Order.findOne({ ordernumber })
-    .select("ordernumber status images isreturn")
-    .populate([
-      {
-        path: "pickedby",
-        select: "_id firstName lastName",
-      },
-      {
-        path: "deliveredby",
-        select: "_id firstName lastName",
-      },
-      {
-        path: "storekeeper",
-        select: "_id firstName lastName city",
-      },
-    ]);
-
-  if (!order) {
-    return res.status(409).json({ msg: "Order is not found" });
-  }
+  const order = await orderServices.trackOrder(ordernumber);
 
   res.status(200).json({ data: order });
 });
 
 exports.returnOrder = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  let images = [];
-  if (req.files && req.files[0]) {
-    req.files.forEach((f) => {
-      images.push(f.path);
-    });
-  }
-
-  const order = await Order.findById(id);
-
-  if (!order) {
-    return res.status(409).json({ msg: "Order is not found" });
-  }
-  if (order.isreturn) {
-    return res.status(404).json({
-      msg: `The return request has already sent`,
-    });
-  }
-  if (order.status != "pick to client") {
-    return res.status(404).json({
-      msg: `Order status should be "pick to client" to do this request`,
-    });
-  }
-
-  order.isreturn = true;
-  order.status = "in store";
-
-  // swap data for sender and receiver
-  // made picked by to delivered
-  order.pickedby = order.deliveredby;
-  const receiver = {
-    name: order.sendername,
-    address: order.senderaddress,
-    city: order.sendercity,
-    district: order.senderdistrict,
-    districtId: order.senderdistrictId,
-    phone: order.senderphone,
-  };
-  order.sendername = order.recivername;
-  order.sendercity = order.recivercity;
-  order.senderaddress = order.reciveraddress;
-  order.senderphone = order.reciverphone;
-  order.senderdistrict = order.reciverdistrict;
-  order.senderdistrictId = order.reciverdistrictId;
-  order.recivername = receiver.name;
-  order.recivercity = receiver.city;
-  order.reciveraddress = receiver.address;
-  order.reciverphone = receiver.phone;
-  order.reciverdistrict = receiver.district;
-  order.reciverdistrictId = receiver.districtId;
-  createPdf(order, false);
-  await addOrderToCarrier(order, "receiver", req.io); // add new receiver with same city of sender
-
-  order.images.return = images;
-  await order.save();
+  const order = await orderServices.returnOrder(
+    req.params.id,
+    req.files,
+    req.io
+  );
 
   res.status(200).json({ msg: "ok", data: order });
 });
@@ -757,43 +494,13 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
   const { id: userId, role } = req.user;
   const { orderId, description } = req.body;
 
-  let order = "";
-  if (role == "data entry") {
-    order = await Order.findOne({ _id: orderId, createdby: userId });
-  } else if (role == "admin") {
-    order = await Order.findOne({ _id: orderId });
-  }
-
-  if (!order) {
-    return res.status(404).json({ msg: "Order is not found" });
-  }
-  if (order.status == "canceled") {
-    return res.status(404).json({
-      msg: `Order is already canceled`,
-    });
-  }
-  if (order.status != "pending") {
-    return res.status(404).json({
-      msg: `Order status is not pending. Can't cancel it`,
-    });
-  }
-
-  let images = [];
-  if (req.files && req.files[0]) {
-    req.files.forEach((f) => {
-      images.push(f.path);
-    });
-  }
-
-  order.status = "canceled";
-  if (role == "data entry") {
-    order.images.canceled.dataEntry = images;
-    order.cancelDescription.dataEntry = description;
-  } else if (role == "admin") {
-    order.images.canceled.admin = images;
-    order.cancelDescription.admin = description;
-  }
-  await order.save();
+  await orderServices.cancelOrder(
+    userId,
+    role,
+    orderId,
+    description,
+    req.files
+  );
 
   res.status(200).json({ msg: "ok" });
 });
