@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
+const generateAuthToken = require("../utils/generateAuthToken");
 
 const carrierSchema = new mongoose.Schema(
   {
@@ -34,17 +34,6 @@ const carrierSchema = new mongoose.Schema(
 );
 carrierSchema.index({ area: 1 }, { unique: false });
 
-carrierSchema.methods.generateAuthToken = async function () {
-  const carrier = {
-    id: this._id,
-    role: this.role,
-  };
-  const token = jwt.sign(carrier, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE_TIME,
-  });
-
-  await this.save();
-  return token;
-};
+carrierSchema.methods.generateAuthToken = generateAuthToken;
 
 module.exports = mongoose.model("Carrier", carrierSchema);

@@ -1,39 +1,31 @@
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
+const generateAuthToken = require("../utils/generateAuthToken");
 
-const storekeeperSchema = new mongoose.Schema({
+const storekeeperSchema = new mongoose.Schema(
+  {
     password: String,
     email: {
-        type: String,
-        unique: true
+      type: String,
+      unique: true,
     },
     mobile: String,
     address: String,
     city: String,
     role: {
-        type: String,
-        default: 'storekeeper',
+      type: String,
+      default: "storekeeper",
     },
     firstName: String,
     lastName: String,
     verified: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
-    verifyCode: Number
-}, { versionKey: false, strict: false, })
+    verifyCode: Number,
+  },
+  { versionKey: false, strict: false }
+);
 
-storekeeperSchema.methods.generateAuthToken = async function () {
-    const user = {
-        id: this._id,
-        role: this.role
-    }
-    const token = jwt.sign(user, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE_TIME
-    })
-
-    await this.save()
-    return token
-}
+storekeeperSchema.methods.generateAuthToken = generateAuthToken;
 
 module.exports = mongoose.model("Storekeeper", storekeeperSchema);
