@@ -1,22 +1,25 @@
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
 const sendEmail = require("../utils/sendEmail");
 const genRandomNumber = require("./../utils/genRandomNumber");
 const ApiError = require("../utils/ApiError");
+const {
+  generateProductionApiKey,
+  generateTestApiKey,
+} = require("../utils/generateApiKey");
 const salt = 10;
 const mailSubject = "Verify your gotex account";
 
-exports.registerUser = async (body) => {
+exports.registerUser = async (UserModel, body, integrate = false) => {
   const { firstName, lastName, email, mobile, nid, city, address } = body;
 
-  const isEmailUsed = await User.findOne({ email });
+  const isEmailUsed = await UserModel.findOne({ email });
   if (isEmailUsed) {
     throw new ApiError(409, "Email is already used");
   }
 
-  const user = await User.create({
+  const user = await UserModel.create({
     firstName,
     lastName,
     email,
@@ -26,30 +29,41 @@ exports.registerUser = async (body) => {
     address,
   });
 
-  const response = await sendEmail(
-    user.email,
-    user._id,
-    "",
-    "/../views/userVerifyEmail.ejs",
-    mailSubject
-  );
+  let ejsFile = "";
+  if (integrate) {
+    ejsFile = "/../views/userIntegrateVerifyEmail.ejs";
+  } else {
+    ejsFile = "/../views/userVerifyEmail.ejs";
+  }
+
+  response = await sendEmail(user.email, user._id, "", ejsFile, mailSubject);
   if (response && response.error) {
     console.error(response.error);
     throw new ApiError(500, "Failed to send email");
   }
 };
 
-exports.resendVerifyEmail = async (userId) => {
-  const user = await User.findById(userId);
+exports.resendVerifyEmail = async (UserModel, userId, integrate = false) => {
+  const user = await UserModel.findById(userId);
   if (!user) {
     throw new ApiError(400, "User is not found");
   }
+  if (user.verified) {
+    throw new ApiError(400, "User is already verified");
+  }
+
+  let ejsFile = "";
+  if (integrate) {
+    ejsFile = "/../views/userIntegrateVerifyEmail.ejs";
+  } else {
+    ejsFile = "/../views/userVerifyEmail.ejs";
+  }
 
   const response = await sendEmail(
     user.email,
     user._id,
     "",
-    "/../views/userVerifyEmail.ejs",
+    ejsFile,
     mailSubject
   );
   if (response && response.error) {
@@ -58,10 +72,24 @@ exports.resendVerifyEmail = async (userId) => {
   }
 };
 
-exports.setPasswordFirstTime = async (userId, body) => {
+// Only for integrate
+exports.verifyEmail = async (UserModel, userId) => {
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    throw new ApiError(404, "User is not found");
+  }
+  if (user.verified) {
+    throw new ApiError(400, "User is already verified");
+  }
+
+  user.verified = true;
+  await generateTestApiKey(user);
+};
+
+exports.setPasswordFirstTime = async (UserModel, userId, body) => {
   const { email, password, confirmPassword } = body;
   console.log(email, userId);
-  const user = await User.findById(userId);
+  const user = await UserModel.findById(userId);
 
   if (!user) {
     throw new ApiError(404, "Email is not found");
@@ -82,9 +110,9 @@ exports.setPasswordFirstTime = async (userId, body) => {
   user.verified = true;
   await user.save();
 };
-exports.login = async (body) => {
+exports.login = async (UserModel, body) => {
   const { email, password } = body;
-  const user = await User.findOne({ email });
+  const user = await UserModel.findOne({ email });
 
   if (!user) {
     throw new ApiError(400, "Wrong email or password");
@@ -103,14 +131,14 @@ exports.login = async (body) => {
   return token;
 };
 
-exports.getAllUsers = async () => {
-  const users = await User.find();
+exports.getAllUsers = async (UserModel) => {
+  const users = await UserModel.find();
 
   return users;
 };
 
-exports.forgetPasswordEmail = async (email) => {
-  const user = await User.findOne({ email });
+exports.forgetPasswordEmail = async (UserModel, email) => {
+  const user = await UserModel.findOne({ email });
 
   if (!user) {
     throw new ApiError(404, "Email is not found");
@@ -144,22 +172,28 @@ exports.verifyForgetPasswordCode = async (user, code) => {
   if (user.verifyCode != code) {
     throw new ApiError(400, "Wrong code");
   }
-  user.verifyCode = genRandomNumber(6);
+
+  user.verifyCode = null;
   await user.save();
 };
 exports.setNewPassword = async (user, password) => {
-  const hash = bcrypt.hashSync(password, salt);
-  user.password = hash;
-  await user.save();
+  if (user.verifyCode == null) {
+    const hash = bcrypt.hashSync(password, salt);
+    user.password = hash;
+
+    await user.save();
+  } else {
+    throw new ApiError(400, "Something went wrong");
+  }
 };
 
 // by admin
-exports.edit = async (userId, body) => {
-  const { mobile, nid, address, city, firstName, lastName } = body;
+exports.edit = async (UserModel, userId, body) => {
+  const { mobile, address, city, firstName, lastName } = body;
 
-  const user = await User.findOneAndUpdate(
+  const user = await UserModel.findOneAndUpdate(
     { _id: userId },
-    { mobile, nid, address, city, firstName, lastName },
+    { mobile, address, city, firstName, lastName },
     { new: true }
   );
   if (!user) {
@@ -167,4 +201,26 @@ exports.edit = async (userId, body) => {
   }
 
   return user;
+};
+
+// Only for integrate
+exports.changeTestApiKey = async (UserModel, userId) => {
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    throw new ApiError(400, "User is not found");
+  }
+
+  const apiKey = await generateTestApiKey(user);
+
+  return apiKey;
+};
+exports.changeProductionApiKey = async (UserModel, userId) => {
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    throw new ApiError(400, "User is not found");
+  }
+
+  const apiKey = await generateProductionApiKey(user);
+
+  return apiKey;
 };
