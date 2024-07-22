@@ -41,7 +41,18 @@ routes.post(
   validate(orderSchema),
   createOrder
 );
-routes.get("/getorder/:id", getOrder);
+routes.get(
+  "/getorder/:id",
+  isAuth([
+    "data entry",
+    "admin",
+    "collector",
+    "receiver",
+    "storekeeper",
+    "tracker",
+  ]),
+  getOrder
+);
 routes.put("/return-order/:id", isAuth("receiver"), returnOrder);
 
 routes.get("/get-user-orders", isAuth("data entry"), getUserOrders);

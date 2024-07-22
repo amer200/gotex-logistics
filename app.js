@@ -8,6 +8,7 @@ const { dbConnection } = require("./db/mongoose");
 const initializeSocket = require("./utils/socketHandler");
 const app = express();
 
+const globalErrorHandling = require("./middlewares/globalErrorHandling");
 const { uploadCarrierData, uploadOrderData } = require("./utils/fileUpload");
 
 const adminRoutes = require("./routes/admin");
@@ -17,10 +18,11 @@ const orderRoutes = require("./routes/order");
 const storeKeeperRoutes = require("./routes/storekeeper");
 const trackerRoutes = require("./routes/tracker");
 
+const integrateRoutes = require("./integration");
+
 const notificationRoutes = require("./routes/notification");
 const citiesRoute = require("./routes/cities");
 const districtsRoute = require("./routes/district");
-const globalErrorHandling = require("./middlewares/globalErrorHandling");
 
 dbConnection();
 
@@ -108,7 +110,9 @@ app.use("/notifications", notificationRoutes);
 app.use("/cities", citiesRoute);
 app.use("/districts", districtsRoute);
 
-// app.use(globalErrorHandling);
+app.use("/integrate", integrateRoutes);
+
+app.use(globalErrorHandling);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

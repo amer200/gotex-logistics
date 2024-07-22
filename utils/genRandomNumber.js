@@ -1,11 +1,12 @@
-const genRandomString = (length) => {
-    var chars = '0123456789';
-    var charLength = chars.length;
-    var result = '';
-    for (var i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * charLength));
-    }
-    return result;
-}
+const otpGenerator = require("otp-generator");
 
-module.exports = genRandomString
+const genRandomNumber = (length) => {
+  return otpGenerator.generate(length, {
+    upperCaseAlphabets: false,
+    specialChars: false,
+    lowerCaseAlphabets: false,
+    digits: true,
+  });
+};
+
+module.exports = genRandomNumber;
