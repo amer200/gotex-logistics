@@ -17,7 +17,7 @@ const {
 
 // with Admin Auth
 routes.post("/register", isAuth("admin"), validate(userSchema), registerUser);
-routes.post("/resend-verify-email/:id", resendVerifyEmail);
+routes.post("/resend-verify-email/:id", isAuth("admin"), resendVerifyEmail);
 routes.post("/verify-email/:id", verifyEmail);
 
 routes.get("/", isAuth("admin"), getAllUsers);
