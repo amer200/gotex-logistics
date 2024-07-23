@@ -4,7 +4,7 @@ const userServices = require("../../services/user");
 
 exports.registerUser = asyncHandler(async (req, res) => {
   const integrate = true;
-  await userServices.registerUser(User, req.body, integrate);
+  await userServices.register(User, req.body, integrate);
 
   return res.status(200).json({ msg: "Email sent successfully" });
 });

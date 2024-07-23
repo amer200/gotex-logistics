@@ -1,7 +1,11 @@
 /**
  * @Desc : create object of pagination details (using aggregate)
  */
-exports.countDocsAfterFiltering = async (Model, lookupStages, matchStage) => {
+exports.countDocsAfterFiltering = async (
+  Model,
+  matchStage,
+  lookupStages = []
+) => {
   const result = await Model.aggregate([
     ...lookupStages,
     matchStage,

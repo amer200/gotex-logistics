@@ -1,9 +1,9 @@
-// const User = require("../model/user");
 const asyncHandler = require("express-async-handler");
+const User = require("../models/user");
 
 exports.isValid = asyncHandler(async (req, res, next) => {
-  const { userId, apiKey } = req.body.userId;
-
+  const { userId, apiKey } = req.body;
+  console.log(req.body);
   const user = await User.findById(userId);
 
   if (!user) {

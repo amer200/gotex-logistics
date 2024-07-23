@@ -8,7 +8,7 @@ const {
 } = require("../utils/pagination");
 const ApiError = require("../utils/ApiError");
 
-exports.createOrder = async (body, userId, io) => {
+exports.createOrder = async (body, userId, io, integrateRequest = false) => {
   const {
     sendername,
     senderaddress,
@@ -29,7 +29,11 @@ exports.createOrder = async (body, userId, io) => {
     description,
   } = body;
 
-  const createdby = userId;
+  if (integrateRequest) {
+    var userIntegrate = userId;
+  } else {
+    var createdby = userId;
+  }
 
   const order = await Order.create({
     sendername,
@@ -50,6 +54,9 @@ exports.createOrder = async (body, userId, io) => {
     weight,
     pieces,
     description,
+
+    integrateRequest,
+    userIntegrate,
   });
   createPdf(order, false);
 
@@ -59,14 +66,20 @@ exports.createOrder = async (body, userId, io) => {
   return order;
 };
 
-// by admin
+// Main app [by admin]
 exports.getAllOrders = async (query) => {
   const page = +query.page || 1;
   const limit = +query.limit || 30;
   const skip = (page - 1) * limit;
   const startDate = query.startDate || new Date("2000-01-01");
   const endDate = query.endDate || new Date();
-  const { ordernumber = "", paytype = "", status = "", keyword = "" } = query;
+  const {
+    ordernumber = "",
+    paytype = "",
+    status = "",
+    keyword = "",
+    get = "",
+  } = query;
 
   const lookupStages = [
     {
@@ -76,6 +89,14 @@ exports.getAllOrders = async (query) => {
         localField: "createdby",
         foreignField: "_id",
         as: "user",
+      },
+    },
+    {
+      $lookup: {
+        from: "userintegrates",
+        localField: "userIntegrate",
+        foreignField: "_id",
+        as: "userIntegrate",
       },
     },
     {
@@ -116,6 +137,12 @@ exports.getAllOrders = async (query) => {
     },
   };
 
+  if (get == "integrate") {
+    matchStage.$match.integrateRequest = true;
+  } else if (get == "main") {
+    matchStage.$match.integrateRequest = false;
+  }
+
   if (keyword) {
     matchStage["$match"]["$or"] = [
       { "user.firstName": { $regex: keyword, $options: "i" } },
@@ -151,6 +178,13 @@ exports.getAllOrders = async (query) => {
       "user.city": 0,
       "user.verified": 0,
       "user.password": 0,
+
+      "userIntegrate.role": 0,
+      "userIntegrate.nid": 0,
+      "userIntegrate.address": 0,
+      "userIntegrate.city": 0,
+      "userIntegrate.verified": 0,
+      "userIntegrate.apiKey": 0,
 
       "collector.role": 0,
       "collector.nid": 0,
@@ -194,16 +228,78 @@ exports.getAllOrders = async (query) => {
 
   const totalCount = await countDocsAfterFiltering(
     Order,
-    lookupStages,
-    matchStage
+    matchStage,
+    lookupStages
   );
   const pagination = createPaginationObj(page, limit, totalCount);
 
   return { pagination, ordersPerPage };
 };
 
-exports.getOrder = async (orderId) => {
-  const url = await Order.findOne({ _id: orderId }, { ordernumber: 1, _id: 0 });
+// Integrate [by user]
+// with filter & pagination
+exports.getUserOrdersIntegrate = async (query) => {
+  const page = +query.page || 1;
+  const limit = +query.limit || 30;
+  const skip = (page - 1) * limit;
+  const startDate = query.startDate || new Date("2000-01-01");
+  const endDate = query.endDate || new Date();
+  const { ordernumber = "", paytype = "", status = "" } = query;
+
+  let matchStage = {
+    $match: {
+      integrateRequest: true,
+      ordernumber: { $regex: ordernumber, $options: "i" },
+      paytype: { $regex: paytype, $options: "i" },
+      status: { $regex: status, $options: "i" },
+      updatedAt: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    },
+  };
+
+  const projectStage = {
+    $project: {
+      __v: 0,
+      createdby: 0,
+      pickedby: 0,
+      deliveredby: 0,
+      storekeeper: 0,
+
+      integrateRequest: 0,
+      images: 0,
+      inStore: 0,
+      problem: 0,
+      isreturn: 0,
+    },
+  };
+
+  const ordersPerPage = await Order.aggregate([
+    matchStage,
+    { $sort: { updatedAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+    projectStage,
+  ]);
+
+  const totalCount = await countDocsAfterFiltering(Order, matchStage);
+  console.log(totalCount);
+  const pagination = createPaginationObj(page, limit, totalCount);
+
+  return { pagination, ordersPerPage };
+};
+
+exports.getOrder = async (orderId, integrateRequest = false) => {
+  let url = "";
+  if (integrateRequest) {
+    url = await Order.findOne(
+      { _id: orderId, integrateRequest },
+      { ordernumber: 1, _id: 0 }
+    );
+  } else {
+    url = await Order.findOne({ _id: orderId }, { ordernumber: 1, _id: 0 });
+  }
 
   if (!url) {
     throw new ApiError(404, "Order is not found");
@@ -245,71 +341,22 @@ exports.trackOrder = async (ordernumber) => {
   return order;
 };
 
-exports.returnOrder = async (orderId, files, io) => {
-  let images = [];
-  if (files && files[0]) {
-    files.forEach((f) => {
-      images.push(f.path);
-    });
-  }
-
-  const order = await Order.findById(orderId);
-
-  if (!order) {
-    throw new ApiError(404, "Order is not found");
-  }
-  if (order.isreturn) {
-    throw new ApiError(400, `The return request has already sent`);
-  }
-  if (order.status != "pick to client") {
-    throw new ApiError(
-      400,
-      `Order status should be "pick to client" to do this request`
-    );
-  }
-
-  order.isreturn = true;
-  order.status = "in store";
-
-  // swap data for sender and receiver
-  // made picked by to delivered
-  order.pickedby = order.deliveredby;
-  const receiver = {
-    name: order.sendername,
-    address: order.senderaddress,
-    city: order.sendercity,
-    district: order.senderdistrict,
-    districtId: order.senderdistrictId,
-    phone: order.senderphone,
-  };
-  order.sendername = order.recivername;
-  order.sendercity = order.recivercity;
-  order.senderaddress = order.reciveraddress;
-  order.senderphone = order.reciverphone;
-  order.senderdistrict = order.reciverdistrict;
-  order.senderdistrictId = order.reciverdistrictId;
-  order.recivername = receiver.name;
-  order.recivercity = receiver.city;
-  order.reciveraddress = receiver.address;
-  order.reciverphone = receiver.phone;
-  order.reciverdistrict = receiver.district;
-  order.reciverdistrictId = receiver.districtId;
-  createPdf(order, false);
-  await addOrderToCarrier(order, "receiver", io); // add new receiver with same city of sender
-
-  order.images.return = images;
-  await order.save();
-
-  return order;
-};
-
-// By User or Admin
-exports.cancelOrder = async (userId, role, orderId, description, files) => {
+// By User or Admin in main app & user in integrate
+exports.cancelOrder = async (
+  userId,
+  role,
+  orderId,
+  description,
+  files,
+  integrateRequest = false
+) => {
   let order = "";
   if (role == "data entry") {
     order = await Order.findOne({ _id: orderId, createdby: userId });
   } else if (role == "admin") {
     order = await Order.findOne({ _id: orderId });
+  } else if (integrateRequest) {
+    order = await Order.findOne({ _id: orderId, integrateRequest });
   }
 
   if (!order) {

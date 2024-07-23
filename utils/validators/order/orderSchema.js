@@ -74,7 +74,7 @@ const orderSchema = {
     "pieces",
   ],
 
-  additionalProperties: false,
+  additionalProperties: true,
 };
 
 module.exports = ajvValidate.compile(orderSchema);
