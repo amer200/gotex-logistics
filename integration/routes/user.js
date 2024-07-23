@@ -2,7 +2,6 @@ const express = require("express");
 const routes = express.Router();
 const validate = require("../../middlewares/validate");
 const isVerifiedCodeToken = require("../../middlewares/verifyCodeToken");
-const User = require("../models/user");
 const userSchema = require("../../utils/validators/userSchema");
 const isAuth = require("../../middlewares/isAuth");
 const {
