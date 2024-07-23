@@ -77,6 +77,11 @@ app.put(
 app.put("/order/return-order/:id", uploadOrderData.array("images.return"));
 app.put("/order/problem-request", uploadOrderData.array("problem.images"));
 
+app.put(
+  "/integrate/order/cancel-order",
+  uploadOrderData.array("images.canceled")
+);
+
 // Middlewares
 app.use(express.static("public"));
 app.use(express.static("upload"));

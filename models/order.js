@@ -101,13 +101,6 @@ const orderSchema = new mongoose.Schema(
       },
       return: [String],
     },
-    gotex: {
-      request: {
-        type: Boolean,
-        default: false,
-      },
-    },
-    client: { type: mongoose.Schema.Types.ObjectId, ref: "Client" },
     inStore: {
       request: {
         type: Boolean,
@@ -133,9 +126,19 @@ const orderSchema = new mongoose.Schema(
         default: "pending",
       },
     },
+
+    integrateRequest: {
+      type: Boolean,
+      default: false,
+    },
+    userIntegrate: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserIntegrate",
+    },
   },
   { versionKey: false, strict: false, timestamps: true }
 );
+
 orderSchema.pre("save", function (next) {
   if (this.isNew) {
     this.ordernumber = this._id.toString().slice(-10);
@@ -148,5 +151,6 @@ orderSchema.index({ createdAt: -1 }, { unique: false });
 orderSchema.index({ updatedAt: -1 }, { unique: false });
 orderSchema.index({ pickedby: 1 }, { unique: false });
 orderSchema.index({ ordernumber: 1 }, { unique: true });
+orderSchema.index({ integrateRequest: 1 }, { unique: false });
 
 module.exports = mongoose.model("Order", orderSchema);

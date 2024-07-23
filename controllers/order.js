@@ -11,8 +11,9 @@ const Storekeeper = require("../models/storekeeper");
 const changeOrderStatus = require("../utils/changeOrderStatus");
 const cron = require("node-cron");
 const orderServices = require("../services/order");
+const { createPdf } = require("../utils/createPdf");
 
-const scheduleExpression = "0 21 * * *"; // Every day at midnight (12:00 AM)
+const scheduleExpression = "0 21 * * *"; // Every day at midnight (12:00 AM saudi arabia)
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const order = await orderServices.createOrder(req.body, req.user.id, req.io);
@@ -73,17 +74,86 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
 
 exports.trackOrder = asyncHandler(async (req, res) => {
   const { ordernumber } = req.params;
-  const order = await orderServices.trackOrder(ordernumber);
+
+  const order = await Order.findOne({ ordernumber })
+    .select("ordernumber status images isreturn")
+    .populate([
+      {
+        path: "pickedby",
+        select: "_id firstName lastName",
+      },
+      {
+        path: "deliveredby",
+        select: "_id firstName lastName",
+      },
+      {
+        path: "storekeeper",
+        select: "_id firstName lastName city",
+      },
+    ]);
+
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
 
   res.status(200).json({ data: order });
 });
 
 exports.returnOrder = asyncHandler(async (req, res) => {
-  const order = await orderServices.returnOrder(
-    req.params.id,
-    req.files,
-    req.io
-  );
+  const orderId = req.params.id;
+
+  let images = [];
+  if (req.files && req.files[0]) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  }
+
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.isreturn) {
+    return res.status(400).json({ msg: `The return request is already sent` });
+  }
+  if (order.status != "pick to client") {
+    return res.status(400).json({
+      msg: `Order status should be "pick to client" to do this request`,
+    });
+  }
+
+  order.isreturn = true;
+  order.status = "in store";
+
+  // swap data for sender and receiver
+  // made picked by to delivered
+  order.pickedby = order.deliveredby;
+  const receiver = {
+    name: order.sendername,
+    address: order.senderaddress,
+    city: order.sendercity,
+    district: order.senderdistrict,
+    districtId: order.senderdistrictId,
+    phone: order.senderphone,
+  };
+  order.sendername = order.recivername;
+  order.sendercity = order.recivercity;
+  order.senderaddress = order.reciveraddress;
+  order.senderphone = order.reciverphone;
+  order.senderdistrict = order.reciverdistrict;
+  order.senderdistrictId = order.reciverdistrictId;
+  order.recivername = receiver.name;
+  order.recivercity = receiver.city;
+  order.reciveraddress = receiver.address;
+  order.reciverphone = receiver.phone;
+  order.reciverdistrict = receiver.district;
+  order.reciverdistrictId = receiver.districtId;
+  createPdf(order, false);
+  await addOrderToCarrier(order, "receiver", req.io); // add new receiver with same city of sender
+
+  order.images.return = images;
+  await order.save();
 
   res.status(200).json({ msg: "ok", data: order });
 });
