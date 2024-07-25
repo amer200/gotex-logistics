@@ -272,6 +272,7 @@ exports.getUserOrdersIntegrate = async (query) => {
       inStore: 0,
       problem: 0,
       isreturn: 0,
+      userIntegrate: 0,
     },
   };
 
