@@ -8,7 +8,7 @@ const {
   getUserOrders,
   cancelOrder,
 } = require("../controllers/order");
-const { isValid } = require("../middlewares/api-test");
+const { isValid } = require("../middlewares/api-production");
 
 routes.post("/create-order", isValid, validate(orderSchema), createOrder);
 

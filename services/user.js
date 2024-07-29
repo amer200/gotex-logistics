@@ -84,6 +84,7 @@ exports.verifyEmail = async (UserModel, userId) => {
 
   user.verified = true;
   await generateTestApiKey(user);
+  await generateProductionApiKey(user);
 };
 
 exports.setPasswordFirstTime = async (UserModel, userId, body) => {

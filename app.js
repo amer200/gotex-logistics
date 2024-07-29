@@ -3,7 +3,7 @@ const http = require("http");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
-dotenv.config({ path: ".env" });
+dotenv.config({ path: "production.env" });
 const { dbConnection } = require("./db/mongoose");
 const initializeSocket = require("./utils/socketHandler");
 const app = express();
