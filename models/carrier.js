@@ -27,10 +27,10 @@ const carrierSchema = new mongoose.Schema(
     photo: String,
     papers: [String],
     deliveryCity: String,
-    deliveryDistricts: [String],
+    deliveryDistricts: [Number],
     orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
   },
-  { versionKey: false, strict: false }
+  { versionKey: false, strict: false, timestamps: true }
 );
 carrierSchema.index({ area: 1 }, { unique: false });
 

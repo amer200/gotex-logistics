@@ -181,12 +181,40 @@ exports.login = asyncHandler(async (req, res, next) => {
 exports.getAllCarriers = asyncHandler(async (req, res) => {
   const { role = "" } = req.query;
 
-  let carriers = {};
-  if (!role) {
-    carriers = await Carrier.find();
-  } else {
-    carriers = await Carrier.find({ role });
+  let matchStage = { $match: {} };
+  if (role) {
+    matchStage = { $match: { role } };
   }
+
+  const lookupStage = {
+    $lookup: {
+      from: "districts",
+      localField: "deliveryDistricts",
+      foreignField: "district_id",
+      as: "deliveryDistricts",
+    },
+  };
+
+  const projectStage = {
+    $project: {
+      orders: 0,
+
+      "deliveryDistricts._id": 0,
+      "deliveryDistricts.city_id": 0,
+      "deliveryDistricts.region_id": 0,
+      "deliveryDistricts.updatedAt": 0,
+      "deliveryDistricts.usedBy": 0,
+    },
+  };
+
+  carriers = await Carrier.aggregate([
+    matchStage,
+    lookupStage,
+    {
+      $sort: { createdAt: -1 },
+    },
+    projectStage,
+  ]);
 
   res.status(200).json({
     result: carriers.length,
