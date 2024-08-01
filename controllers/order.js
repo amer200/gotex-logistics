@@ -462,6 +462,7 @@ exports.getInStoreRequests = asyncHandler(async (req, res) => {
 
   const orders = await Order.find({
     "inStore.request": true,
+    status: "pick to store",
     sendercity: storekeeper.city,
   }).sort({ updatedAt: -1 });
 
