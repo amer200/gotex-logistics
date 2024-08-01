@@ -19,7 +19,7 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
     reciverdistrictId: {
-      type: String,
+      type: Number,
       required: true,
     },
     reciverphone: {
@@ -43,7 +43,7 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
     senderdistrictId: {
-      type: String,
+      type: Number,
       required: true,
     },
     senderphone: {
