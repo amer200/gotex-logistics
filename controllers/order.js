@@ -756,7 +756,14 @@ const lateToStoreOrders = asyncHandler(async (req, res) => {
 exports.getLateToStoreOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({
     status: "late to store",
-  }).sort({ updatedAt: -1 });
+  })
+    .sort({ updatedAt: -1 })
+    .populate([
+      {
+        path: "pickedby",
+        select: "_id firstName lastName email mobile",
+      },
+    ]);
 
   res.status(200).json({ result: orders.length, orders });
 });
