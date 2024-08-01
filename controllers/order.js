@@ -493,6 +493,7 @@ exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
   order.inStore.requestStatus = requestStatus;
   if (requestStatus == "accepted") {
     order.status = "in store";
+    order.storekeeper = userId;
 
     await addOrderToCarrier(order, "receiver", req.io);
   }
