@@ -10,8 +10,11 @@ const {
   addOrderToStore,
   edit,
 } = require("../controllers/storekeeper");
+const validate = require("../middlewares/validate");
+const storekeeperRegister = require("../utils/validators/storekeeper/storekeeperRegister");
+const storekeeperEdit = require("../utils/validators/storekeeper/storekeeperEdit");
 
-routes.post("/register", registerStoreKeeper);
+routes.post("/register", validate(storekeeperRegister), registerStoreKeeper);
 routes.post("/resend-verify-email/:id", resendVerifyEmail);
 routes.get("/", getAllStoreKeepers);
 
@@ -23,6 +26,6 @@ routes.patch(
   addOrderToStore
 );
 
-routes.post("/:id", isAuth("admin"), edit);
+routes.post("/:id", isAuth("admin"), validate(storekeeperEdit), edit);
 
 module.exports = routes;
