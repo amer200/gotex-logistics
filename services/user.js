@@ -189,11 +189,11 @@ exports.setNewPassword = async (user, password) => {
 
 // by admin
 exports.edit = async (UserModel, userId, body) => {
-  const { mobile, address, city, firstName, lastName } = body;
+  const { mobile, nid, address, city, firstName, lastName } = body;
 
   const user = await UserModel.findOneAndUpdate(
     { _id: userId },
-    { mobile, address, city, firstName, lastName },
+    { mobile, nid, address, city, firstName, lastName },
     { new: true }
   );
   if (!user) {
