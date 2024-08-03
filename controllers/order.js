@@ -462,6 +462,7 @@ exports.getInStoreRequests = asyncHandler(async (req, res) => {
 
   const orders = await Order.find({
     "inStore.request": true,
+    status: "pick to store",
     sendercity: storekeeper.city,
   }).sort({ updatedAt: -1 });
 
@@ -492,6 +493,7 @@ exports.inStoreRequestStatus = asyncHandler(async (req, res) => {
   order.inStore.requestStatus = requestStatus;
   if (requestStatus == "accepted") {
     order.status = "in store";
+    order.storekeeper = userId;
 
     await addOrderToCarrier(order, "receiver", req.io);
   }
@@ -754,7 +756,14 @@ const lateToStoreOrders = asyncHandler(async (req, res) => {
 exports.getLateToStoreOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({
     status: "late to store",
-  }).sort({ updatedAt: -1 });
+  })
+    .sort({ updatedAt: -1 })
+    .populate([
+      {
+        path: "pickedby",
+        select: "_id firstName lastName email mobile",
+      },
+    ]);
 
   res.status(200).json({ result: orders.length, orders });
 });

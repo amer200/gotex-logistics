@@ -1,12 +1,8 @@
-const ajvValidate = require("./ajvValidate");
+const ajvValidate = require("../ajvValidate");
 
-const userSchema = {
+const carrierSchema = {
   type: "object",
   properties: {
-    email: {
-      type: "string",
-      format: "email",
-    },
     mobile: { type: "string" },
     role: {
       type: "string",
@@ -26,7 +22,6 @@ const userSchema = {
     },
   },
   required: [
-    "email",
     "mobile",
     "nid",
     "address",
@@ -39,4 +34,4 @@ const userSchema = {
   additionalProperties: false,
 };
 
-module.exports = ajvValidate.compile(userSchema);
+module.exports = ajvValidate.compile(carrierSchema);

@@ -1,7 +1,8 @@
 const express = require("express");
 const routes = express.Router();
 const validate = require("../middlewares/validate");
-const carrierSchema = require("../utils/validators/carrierSchema");
+const carrierRegister = require("../utils/validators/carrier/carrierRegister");
+const carrierEdit = require("../utils/validators/carrier/carrierEdit");
 const isVerifiedCodeToken = require("../middlewares/verifyCodeToken");
 const Carrier = require("../models/carrier");
 const isAuth = require("../middlewares/isAuth");
@@ -24,7 +25,7 @@ const {
 routes.post(
   "/register",
   isAuth("admin"),
-  validate(carrierSchema),
+  validate(carrierRegister),
   registerCarrier
 );
 routes.post("/resend-verify-email/:id", isAuth("admin"), resendVerifyEmail);
@@ -43,6 +44,6 @@ routes.post(
 );
 routes.post("/set-new-password", isVerifiedCodeToken(Carrier), setNewPassword);
 
-routes.put("/:id", isAuth("admin"), edit);
+routes.put("/:id", isAuth("admin"), validate(carrierEdit), edit);
 
 module.exports = routes;

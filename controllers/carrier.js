@@ -5,6 +5,10 @@ const Carrier = require("../models/carrier");
 const District = require("../models/district");
 const sendEmail = require("../utils/sendEmail");
 const genRandomNumber = require("./../utils/genRandomNumber");
+const {
+  isDistrictsUsedInRegister,
+  isDistrictsUsedInEdit,
+} = require("../utils/isDistrictsUsed");
 const salt = 10;
 const mailSubject = "Verify your gotex account";
 
@@ -41,25 +45,7 @@ exports.registerCarrier = asyncHandler(async (req, res) => {
     });
   }
 
-  // check that districts are not used
-  let districts = [];
-  if (role == "collector") {
-    districts = await District.find({
-      district_id: { $in: deliveryDistricts },
-      "usedBy.collector": { $exists: true },
-    });
-  } else if (role == "receiver") {
-    districts = await District.find({
-      district_id: { $in: deliveryDistricts },
-      "usedBy.receiver": { $exists: true },
-    });
-  }
-
-  if (districts.length) {
-    return res.status(400).json({
-      msg: "District is already used",
-    });
-  }
+  await isDistrictsUsedInRegister(District, deliveryDistricts, role);
 
   const carrier = await Carrier.create({
     firstName,
@@ -181,12 +167,40 @@ exports.login = asyncHandler(async (req, res, next) => {
 exports.getAllCarriers = asyncHandler(async (req, res) => {
   const { role = "" } = req.query;
 
-  let carriers = {};
-  if (!role) {
-    carriers = await Carrier.find();
-  } else {
-    carriers = await Carrier.find({ role });
+  let matchStage = { $match: {} };
+  if (role) {
+    matchStage = { $match: { role } };
   }
+
+  const lookupStage = {
+    $lookup: {
+      from: "districts",
+      localField: "deliveryDistricts",
+      foreignField: "district_id",
+      as: "deliveryDistricts",
+    },
+  };
+
+  const projectStage = {
+    $project: {
+      orders: 0,
+
+      "deliveryDistricts._id": 0,
+      "deliveryDistricts.city_id": 0,
+      "deliveryDistricts.region_id": 0,
+      "deliveryDistricts.updatedAt": 0,
+      "deliveryDistricts.usedBy": 0,
+    },
+  };
+
+  carriers = await Carrier.aggregate([
+    matchStage,
+    lookupStage,
+    {
+      $sort: { createdAt: -1 },
+    },
+    projectStage,
+  ]);
 
   res.status(200).json({
     result: carriers.length,
@@ -313,25 +327,24 @@ exports.edit = asyncHandler(async (req, res) => {
     }
   }
 
-  const carrier = await Carrier.findOneAndUpdate(
-    { _id: id, role },
-    {
-      mobile,
-      nid,
-      address,
-      city,
-      firstName,
-      lastName,
-      photo,
-      papers,
-      deliveryCity,
-      deliveryDistricts,
-    },
-    { new: true }
-  );
+  const carrier = await Carrier.findOne({ _id: id, role });
   if (!carrier) {
     return res.status(404).json({ msg: `carrier is not found` });
   }
+
+  await isDistrictsUsedInEdit(District, deliveryDistricts, role, carrier);
+
+  carrier.mobile = mobile;
+  carrier.nid = nid;
+  carrier.address = address;
+  carrier.city = city;
+  carrier.firstName = firstName;
+  carrier.lastName = lastName;
+  carrier.photo = photo;
+  carrier.papers = papers;
+  carrier.deliveryCity = deliveryCity;
+  carrier.deliveryDistricts = deliveryDistricts;
+  await carrier.save();
 
   res.status(200).json({ data: carrier });
 });
