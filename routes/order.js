@@ -31,6 +31,7 @@ const {
   cancelOrder,
   cancelOrderByCollector,
   getLateToStoreOrders,
+  lateToStoreOrdersRoute,
 } = require("../controllers/order/changeOrderStatus");
 const {
   problemRequest,
@@ -95,6 +96,9 @@ routes.put(
 );
 
 routes.get("/late", isAuth(["admin", "storekeeper"]), getLateToStoreOrders);
+
+// for testing
+routes.put("/late/:orderId", isAuth("admin"), lateToStoreOrdersRoute);
 
 //#endregion change order status
 

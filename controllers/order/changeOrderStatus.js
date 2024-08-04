@@ -313,3 +313,20 @@ exports.getLateToStoreOrders = asyncHandler(async (req, res) => {
 });
 
 cron.schedule(scheduleExpression, lateToStoreOrders);
+
+// for testing
+exports.lateToStoreOrdersRoute = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const prevStatus = "pick to store";
+  const changeStatusTo = "late to store";
+
+  const order = await Order.findById(orderId);
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+
+  await changeOrderStatus(order, prevStatus, changeStatusTo);
+  await order.save();
+
+  res.status(200).json({ msg: "ok" });
+});
