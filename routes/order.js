@@ -16,23 +16,27 @@ const {
   addOrderToCollector,
   getOrdersWithoutCarriers,
   addOrderToReceiver,
-  pickedToStore,
-  pickedToClient,
-  cancelOrder,
-  orderInStoreRequest,
-  inStoreRequestStatus,
-  orderReceived,
-  getInStoreRequests,
   editOrder,
-  changeStatusToPending,
-  cancelOrderByCollector,
-  problemRequest,
-  getOrdersWithProblemRequests,
-  closeProblem,
-  getLateToStoreOrders,
-} = require("../controllers/order");
+} = require("../controllers/order/main");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
+const {
+  changeStatusToPending,
+  pickedToStore,
+  orderInStoreRequest,
+  inStoreRequestStatus,
+  getInStoreRequests,
+  pickedToClient,
+  orderReceived,
+  cancelOrder,
+  cancelOrderByCollector,
+  getLateToStoreOrders,
+} = require("../controllers/order/changeOrderStatus");
+const {
+  problemRequest,
+  getOrdersWithProblemRequest,
+  closeProblem,
+} = require("../controllers/order/problem");
 
 routes.get("/get-all", isAuth("admin"), getAllOrders);
 routes.post(
@@ -89,7 +93,20 @@ routes.put(
   isAuth("collector"),
   cancelOrderByCollector
 );
+
+routes.get("/late", isAuth(["admin", "storekeeper"]), getLateToStoreOrders);
+
 //#endregion change order status
+
+//#region order problem
+routes.put("/problem-request", isAuth("storekeeper"), problemRequest);
+routes.get(
+  "/get-problem-requests",
+  isAuth(["admin", "tracker"]),
+  getOrdersWithProblemRequest
+);
+routes.put("/close-problem", isAuth(["admin", "tracker"]), closeProblem);
+//#endregion order problem
 
 routes.get("/track-order/:ordernumber", trackOrder);
 
@@ -106,15 +123,5 @@ routes.put(
 );
 
 routes.put("/edit-order/:id", isAuth(["data entry", "admin"]), editOrder);
-
-routes.put("/problem-request", isAuth("storekeeper"), problemRequest);
-routes.get(
-  "/get-problem-requests",
-  isAuth(["admin", "tracker"]),
-  getOrdersWithProblemRequests
-);
-routes.put("/close-problem", isAuth(["admin", "tracker"]), closeProblem);
-
-routes.get("/late", isAuth(["admin", "storekeeper"]), getLateToStoreOrders);
 
 module.exports = routes;
