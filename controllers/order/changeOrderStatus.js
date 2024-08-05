@@ -4,6 +4,7 @@ const addOrderToCarrier = require("../../utils/addOrderToCarrier");
 const Storekeeper = require("../../models/storekeeper");
 const changeOrderStatus = require("../../utils/changeOrderStatus");
 const cron = require("node-cron");
+const Carrier = require("../../models/carrier");
 const orderServices = require("../../services/order");
 
 const scheduleExpression = "0 21 * * *"; // Every day at midnight (12:00 AM saudi arabia)
@@ -216,6 +217,12 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   order.images.received = images;
   await order.save();
 
+  if (!order.payment.cod) {
+    const carrier = await Carrier.findById(userId);
+    carrier.collectedCashAmount = carrier.collectedCashAmount + order.price;
+    await carrier.save();
+  }
+
   res.status(200).json({ msg: "ok" });
 });
 
@@ -235,8 +242,9 @@ exports.cancelOrder = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok" });
 });
 
-/**By Collector. Can cancel order after three days from creating it
- *  (in pending status == sender doesn't response). */
+/**By Collector.
+ * The collector can only cancel the order if the sender has not responded (order status
+ *  is still pending) for three days. */
 exports.cancelOrderByCollector = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId, description } = req.body;

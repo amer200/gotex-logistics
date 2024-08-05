@@ -135,6 +135,10 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "UserIntegrate",
     },
+    payment: {
+      cod: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
+      cc: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
+    },
   },
   { versionKey: false, strict: false, timestamps: true }
 );

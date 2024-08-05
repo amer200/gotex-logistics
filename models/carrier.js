@@ -29,6 +29,10 @@ const carrierSchema = new mongoose.Schema(
     deliveryCity: String,
     deliveryDistricts: [Number],
     orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
+    collectedCashAmount: {
+      type: Number,
+      default: 0,
+    },
   },
   { versionKey: false, strict: false, timestamps: true }
 );
