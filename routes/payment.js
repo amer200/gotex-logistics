@@ -4,12 +4,16 @@ const isAuth = require("../middlewares/isAuth");
 const {
   chargeForOrder,
   checkPayment,
-  getPaymentsByCarrier,
+  getPaymentsByOrderId,
 } = require("../controllers/payment");
 
 /** user payment [with tap gateway] */
-routes.post("/charge", isAuth("collector"), chargeForOrder);
+routes.post("/charge/:orderId", isAuth("receiver"), chargeForOrder);
 routes.get("/check-tap-payment/:orderId/:code", checkPayment);
-routes.get("/", isAuth("collector"), getPaymentsByCarrier);
+routes.get(
+  "/order-payments/:orderId",
+  isAuth(["receiver", "admin"]),
+  getPaymentsByOrderId
+);
 
 module.exports = routes;

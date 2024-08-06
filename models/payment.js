@@ -6,6 +6,7 @@ const paymentSchema = mongoose.Schema(
     amount: Number,
     code: String,
     status: String,
+    order: { type: mongoose.Schema.Types.ObjectId, ref: "Order" },
     carrier: { type: mongoose.Schema.Types.ObjectId, ref: "Carrier" },
   },
   { versionKey: false, timestamps: true }

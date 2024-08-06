@@ -7,7 +7,7 @@ const genRandomNumber = require("../utils/genRandomNumber");
 const carrier = require("../models/carrier");
 
 exports.chargeForOrder = asyncHandler(async (req, res) => {
-  const { orderId } = req.body;
+  const { orderId } = req.params;
   const carrierId = req.user.id;
 
   const carrier = await Carrier.findById(carrierId);
@@ -19,8 +19,10 @@ exports.chargeForOrder = asyncHandler(async (req, res) => {
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
   }
-  if (order.payment.cod && order.payment.cod.status == "CAPTURED") {
-    return res.status(400).json({ msg: "Payment is already done" });
+  if (order.payment.cod && order.payment.cod.status === "CAPTURED") {
+    return res
+      .status(400)
+      .json({ msg: "Payment is already done for this order" });
   }
 
   const amount = order.price;
@@ -86,6 +88,7 @@ exports.chargeForOrder = asyncHandler(async (req, res) => {
     code: code,
     status: "pending",
     carrier: carrierId,
+    order: orderId,
   });
 
   res.status(200).json({ data: response.data });
@@ -128,7 +131,13 @@ exports.checkPayment = asyncHandler(async (req, res) => {
   const charge = await getCharge(payment.data.id);
   const currentStatus = charge.data.status;
 
+  order.payment.cod = payment._id;
+  await order.save();
+
   if (currentStatus != "CAPTURED") {
+    payment.status = currentStatus;
+    await payment.save();
+
     return res.render("paymentStatus", {
       text1: `Charge status is ${currentStatus}`,
       text2: "Something went wrong. Please try again",
@@ -137,15 +146,12 @@ exports.checkPayment = asyncHandler(async (req, res) => {
     return res.status(400).json({
       data: status,
     });
-  } else {
-    order.payment.cod = payment._id;
-    await order.save();
-
-    payment.code = genRandomNumber(10);
   }
 
   payment.status = currentStatus;
+  payment.code = genRandomNumber(10);
   await payment.save();
+
   return res.render("paymentStatus", {
     text1: `Charge status is CAPTURED.`,
     text2: `You have successfully paid the order price (${order.price} SAR)`,
@@ -156,9 +162,9 @@ exports.checkPayment = asyncHandler(async (req, res) => {
   });
 });
 
-exports.getPaymentsByCarrier = asyncHandler(async (req, res) => {
-  const carrierId = req.user.id;
-  const payments = await Payment.find({ carrier: carrierId }).sort({
+exports.getPaymentsByOrderId = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const payments = await Payment.find({ order: orderId }).sort({
     createdAt: -1,
   });
 
