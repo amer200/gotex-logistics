@@ -17,6 +17,7 @@ const {
   getOrdersWithoutCarriers,
   addOrderToReceiver,
   editOrder,
+  takeOrderMoney,
 } = require("../controllers/order/main");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -127,5 +128,12 @@ routes.put(
 );
 
 routes.put("/edit-order/:id", isAuth(["data entry", "admin"]), editOrder);
+
+// Storekeeper
+routes.put(
+  "/take-order-money/:orderId",
+  isAuth(["storekeeper"]),
+  takeOrderMoney
+);
 
 module.exports = routes;

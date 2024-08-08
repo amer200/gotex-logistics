@@ -453,3 +453,47 @@ exports.editOrder = asyncHandler(async (req, res) => {
 
   res.status(200).json({ msg: "ok", data: order });
 });
+
+// Storekeeper take the cash money of the order from receiver carrier
+exports.takeOrderMoney = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.params;
+
+  const storekeeper = await Storekeeper.findById(userId);
+
+  const order = await Order.findOne({
+    _id: orderId,
+    storekeeper: storekeeper._id,
+  }).populate({
+    path: "payment.cod",
+    select: "status amount",
+  });
+  if (!order) {
+    return res.status(404).json({ msg: "Order is not found" });
+  }
+  if (order.payment.cod?.status == "CAPTURED") {
+    return res.status(400).json({ msg: "This order is paid with visa." });
+  }
+  if (order.receiverPaidCash) {
+    return res.status(400).json({
+      msg: "You should already have collected the cash for the order.",
+    });
+  }
+  if (order.status != "received") {
+    return res
+      .status(400)
+      .json({ msg: `Order status has to be "received" to do this action` });
+  }
+
+  const receiver = await Carrier.findById(order.deliveredby);
+  if (!receiver) {
+    return res.status(404).json({ msg: "Receiver is not found" });
+  }
+
+  order.receiverPaidCash = true;
+  receiver.collectedCashAmount -= order.price;
+  storekeeper.collectedCashAmount += order.price;
+  await Promise.all([order.save(), storekeeper.save(), receiver.save()]);
+
+  res.status(200).json({ msg: "ok" });
+});
