@@ -216,7 +216,6 @@ exports.getAllOrders = async (query) => {
       "receiver.createdAt": 0,
       "receiver.updatedAt": 0,
       "receiver.orders": 0,
-      "receiver.collectedCashAmount": 0,
 
       "storekeeper.role": 0,
       "storekeeper.nid": 0,
