@@ -10,6 +10,7 @@ const {
 const Storekeeper = require("../../models/storekeeper");
 const orderServices = require("../../services/order");
 const { createPdf } = require("../../utils/createPdf");
+const mongoose = require("mongoose");
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const order = await orderServices.createOrder(req.body, req.user.id, req.io);
@@ -63,11 +64,65 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
 
   res.status(200).json({ msg: "ok", data: orders });
 });
+
 exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const orders = await Order.find({ storekeeper: userId }).sort({
-    updatedAt: -1,
-  });
+  const { receiver = "" } = req.query;
+
+  const orders = await Order.aggregate([
+    {
+      $match: {
+        storekeeper: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $lookup: {
+        from: "carriers",
+        localField: "deliveredby",
+        foreignField: "_id",
+        as: "deliveredby",
+      },
+    },
+    {
+      $unwind: "$deliveredby",
+    },
+    {
+      $addFields: {
+        "deliveredby.fullName": {
+          $concat: ["$deliveredby.firstName", " ", "$deliveredby.lastName"],
+        },
+      },
+    },
+    {
+      $match: {
+        "deliveredby.fullName": { $regex: receiver, $options: "i" },
+      },
+    },
+    {
+      $sort: { updatedAt: -1 },
+    },
+    {
+      $project: {
+        "deliveredby.firstName": 0,
+        "deliveredby.lastName": 0,
+        "deliveredby.email": 0,
+        "deliveredby.mobile": 0,
+        "deliveredby.role": 0,
+        "deliveredby.nid": 0,
+        "deliveredby.address": 0,
+        "deliveredby.city": 0,
+        "deliveredby.verified": 0,
+        "deliveredby.papers": 0,
+        "deliveredby.deliveryCity": 0,
+        "deliveredby.deliveryDistricts": 0,
+        "deliveredby.orders": 0,
+        "deliveredby.createdAt": 0,
+        "deliveredby.updatedAt": 0,
+        "deliveredby.password": 0,
+        "deliveredby.collectedCashAmount": 0,
+      },
+    },
+  ]);
 
   res.status(200).json({ msg: "ok", data: orders });
 });
