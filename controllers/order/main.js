@@ -52,6 +52,7 @@ exports.getCollectorOrders = asyncHandler(async (req, res) => {
 exports.getReceiverOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
 
+  const receiver = await Carrier.findById(userId);
   const orders = await Order.find({
     deliveredby: userId,
     status: { $nin: ["pending", "pick to store"] },
@@ -62,13 +63,18 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
     })
     .sort({ updatedAt: -1 });
 
-  res.status(200).json({ msg: "ok", data: orders });
+  res.status(200).json({
+    msg: "ok",
+    receiver: { collectedCashAmount: receiver.collectedCashAmount },
+    data: orders,
+  });
 });
 
 exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { receiver = "" } = req.query;
 
+  const storekeeper = await Storekeeper.findById(userId);
   const orders = await Order.aggregate([
     {
       $match: {
@@ -124,7 +130,11 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
     },
   ]);
 
-  res.status(200).json({ msg: "ok", data: orders });
+  res.status(200).json({
+    msg: "ok",
+    storekeeper: { collectedCashAmount: storekeeper.collectedCashAmount },
+    data: orders,
+  });
 });
 
 exports.trackOrder = asyncHandler(async (req, res) => {
