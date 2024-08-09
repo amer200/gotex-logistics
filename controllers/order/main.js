@@ -59,7 +59,7 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
   })
     .populate({
       path: "payment.cod",
-      select: "status amount",
+      select: "status amount createdAt",
     })
     .sort({ updatedAt: -1 });
 
@@ -476,7 +476,7 @@ exports.takeOrderMoney = asyncHandler(async (req, res) => {
     storekeeper: storekeeper._id,
   }).populate({
     path: "payment.cod",
-    select: "status amount",
+    select: "status amount createdAt",
   });
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
@@ -486,7 +486,7 @@ exports.takeOrderMoney = asyncHandler(async (req, res) => {
   }
   if (order.receiverPaidCash) {
     return res.status(400).json({
-      msg: "You should already have collected the cash for the order.",
+      msg: "You should already have collected the cash for this order.",
     });
   }
   if (order.status != "received") {

@@ -236,7 +236,6 @@ exports.getAllOrders = async (query) => {
       "payment.cod.code": 0,
       "payment.cod.order": 0,
       "payment.cod.carrier": 0,
-      "payment.cod.createdAt": 0,
       "payment.cod.updatedAt": 0,
     },
   };
