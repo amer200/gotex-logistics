@@ -123,6 +123,14 @@ exports.getAllOrders = async (query) => {
         as: "storekeeper",
       },
     },
+    {
+      $lookup: {
+        from: "payments",
+        localField: "payment.cod",
+        foreignField: "_id",
+        as: "payment.cod",
+      },
+    },
   ];
 
   let matchStage = {
@@ -223,6 +231,13 @@ exports.getAllOrders = async (query) => {
       "storekeeper.city": 0,
       "storekeeper.verified": 0,
       "storekeeper.password": 0,
+
+      "payment.cod.data": 0,
+      "payment.cod.code": 0,
+      "payment.cod.order": 0,
+      "payment.cod.carrier": 0,
+      "payment.cod.createdAt": 0,
+      "payment.cod.updatedAt": 0,
     },
   };
 
