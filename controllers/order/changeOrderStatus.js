@@ -217,9 +217,9 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   order.images.received = images;
   await order.save();
 
-  if (!order.payment.cod) {
+  if (order.payment.cod?.status != "CAPTURED") {
     const carrier = await Carrier.findById(userId);
-    carrier.collectedCashAmount = carrier.collectedCashAmount + order.price;
+    carrier.collectedCashAmount += order.price;
     await carrier.save();
   }
 
