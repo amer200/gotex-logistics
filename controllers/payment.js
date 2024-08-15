@@ -20,7 +20,9 @@ exports.chargeForOrder = asyncHandler(async (req, res) => {
     return res.status(404).json({ msg: "Order is not found" });
   }
   if (["received", "canceled"].includes(order.status)) {
-    throw new ApiError(400, `Order is ${order.status}. Can't pay for it.`);
+    return res
+      .status(400)
+      .json({ msg: `Order is ${order.status}. Can't pay for it.` });
   }
   if (order.payment.cod?.status === "CAPTURED") {
     return res
