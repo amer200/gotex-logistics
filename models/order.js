@@ -135,6 +135,14 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "UserIntegrate",
     },
+    payment: {
+      cod: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
+      cc: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
+    },
+    receiverPaidCash: {
+      type: Boolean,
+      default: false,
+    },
   },
   { versionKey: false, strict: false, timestamps: true }
 );
@@ -152,5 +160,6 @@ orderSchema.index({ updatedAt: -1 }, { unique: false });
 orderSchema.index({ pickedby: 1 }, { unique: false });
 orderSchema.index({ ordernumber: 1 }, { unique: true });
 orderSchema.index({ integrateRequest: 1 }, { unique: false });
+orderSchema.index({ deliveredby: 1 }, { unique: false });
 
 module.exports = mongoose.model("Order", orderSchema);

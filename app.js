@@ -17,12 +17,12 @@ const carrierRoutes = require("./routes/carrier");
 const orderRoutes = require("./routes/order");
 const storeKeeperRoutes = require("./routes/storekeeper");
 const trackerRoutes = require("./routes/tracker");
-
-const integrateRoutes = require("./integration");
-
 const notificationRoutes = require("./routes/notification");
 const citiesRoute = require("./routes/cities");
 const districtsRoute = require("./routes/district");
+const paymentRoute = require("./routes/payment");
+
+const integrateRoutes = require("./integration");
 
 dbConnection();
 
@@ -114,6 +114,7 @@ app.use("/tracker", trackerRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/cities", citiesRoute);
 app.use("/districts", districtsRoute);
+app.use("/payment", paymentRoute);
 
 app.use("/integrate", integrateRoutes);
 

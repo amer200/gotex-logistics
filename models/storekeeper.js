@@ -22,6 +22,10 @@ const storekeeperSchema = new mongoose.Schema(
       default: false,
     },
     verifyCode: Number,
+    collectedCashAmount: {
+      type: Number,
+      default: 0,
+    },
   },
   { versionKey: false, strict: false }
 );

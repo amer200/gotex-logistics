@@ -123,6 +123,14 @@ exports.getAllOrders = async (query) => {
         as: "storekeeper",
       },
     },
+    {
+      $lookup: {
+        from: "payments",
+        localField: "payment.cod",
+        foreignField: "_id",
+        as: "payment.cod",
+      },
+    },
   ];
 
   let matchStage = {
@@ -170,7 +178,7 @@ exports.getAllOrders = async (query) => {
       createdby: 0,
       pickedby: 0,
       deliveredby: 0,
-      // "storekeeper": 0,
+      // storekeeper: 0,
 
       "user.role": 0,
       "user.nid": 0,
@@ -195,7 +203,12 @@ exports.getAllOrders = async (query) => {
       "collector.photo": 0,
       "collector.papers": 0,
       "collector.area": 0,
+      "collector.deliveryCity": 0,
+      "collector.deliveryDistricts": 0,
+      "collector.createdAt": 0,
+      "collector.updatedAt": 0,
       "collector.orders": 0,
+      "collector.collectedCashAmount": 0,
 
       "receiver.role": 0,
       "receiver.nid": 0,
@@ -206,6 +219,10 @@ exports.getAllOrders = async (query) => {
       "receiver.photo": 0,
       "receiver.papers": 0,
       "receiver.area": 0,
+      "receiver.deliveryCity": 0,
+      "receiver.deliveryDistricts": 0,
+      "receiver.createdAt": 0,
+      "receiver.updatedAt": 0,
       "receiver.orders": 0,
 
       "storekeeper.role": 0,
@@ -214,6 +231,12 @@ exports.getAllOrders = async (query) => {
       "storekeeper.city": 0,
       "storekeeper.verified": 0,
       "storekeeper.password": 0,
+
+      "payment.cod.data": 0,
+      "payment.cod.code": 0,
+      "payment.cod.order": 0,
+      "payment.cod.carrier": 0,
+      "payment.cod.updatedAt": 0,
     },
   };
 
