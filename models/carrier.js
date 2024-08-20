@@ -33,6 +33,10 @@ const carrierSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    collectedVisaAmount: {
+      type: Number,
+      default: 0,
+    },
   },
   { versionKey: false, strict: false, timestamps: true }
 );

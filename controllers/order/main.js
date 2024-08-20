@@ -65,7 +65,10 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     msg: "ok",
-    receiver: { collectedCashAmount: receiver.collectedCashAmount },
+    receiver: {
+      collectedCashAmount: receiver.collectedCashAmount,
+      collectedVisaAmount: receiver.collectedVisaAmount,
+    },
     data: orders,
   });
 });
@@ -126,13 +129,17 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
         "deliveredby.updatedAt": 0,
         "deliveredby.password": 0,
         "deliveredby.collectedCashAmount": 0,
+        "deliveredby.collectedVisaAmount": 0,
       },
     },
   ]);
 
   res.status(200).json({
     msg: "ok",
-    storekeeper: { collectedCashAmount: storekeeper.collectedCashAmount },
+    storekeeper: {
+      collectedCashAmount: storekeeper.collectedCashAmount,
+      collectedVisaAmount: storekeeper.collectedVisaAmount,
+    },
     data: orders,
   });
 });
@@ -464,8 +471,8 @@ exports.editOrder = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok", data: order });
 });
 
-// Storekeeper take the cash money of the order from receiver carrier
-exports.takeOrderMoney = asyncHandler(async (req, res) => {
+// Storekeeper takes the cash money of the cod order from receiver carrier
+exports.takeOrderCashMoney = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId } = req.params;
 
@@ -474,12 +481,20 @@ exports.takeOrderMoney = asyncHandler(async (req, res) => {
   const order = await Order.findOne({
     _id: orderId,
     storekeeper: storekeeper._id,
+    paytype: "cod",
   }).populate({
     path: "payment.cod",
     select: "status amount createdAt",
   });
   if (!order) {
-    return res.status(404).json({ msg: "Order is not found" });
+    return res.status(404).json({
+      msg: "Order is not found or may be it is paid online (cc paytype)",
+    });
+  }
+  if (order.status != "received") {
+    return res
+      .status(400)
+      .json({ msg: `Order status has to be "received" to do this action` });
   }
   if (order.payment.cod?.status == "CAPTURED") {
     return res.status(400).json({ msg: "This order is paid with visa." });
@@ -488,11 +503,6 @@ exports.takeOrderMoney = asyncHandler(async (req, res) => {
     return res.status(400).json({
       msg: "You should already have collected the cash for this order.",
     });
-  }
-  if (order.status != "received") {
-    return res
-      .status(400)
-      .json({ msg: `Order status has to be "received" to do this action` });
   }
 
   const receiver = await Carrier.findById(order.deliveredby);
@@ -503,6 +513,52 @@ exports.takeOrderMoney = asyncHandler(async (req, res) => {
   order.receiverPaidCash = true;
   receiver.collectedCashAmount -= order.price;
   storekeeper.collectedCashAmount += order.price;
+  await Promise.all([order.save(), storekeeper.save(), receiver.save()]);
+
+  res.status(200).json({ msg: "ok" });
+});
+// Storekeeper confirms that the order is already paid (cod) successfully with visa
+exports.orderPaidWithVisa = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.params;
+
+  const storekeeper = await Storekeeper.findById(userId);
+
+  const order = await Order.findOne({
+    _id: orderId,
+    storekeeper: storekeeper._id,
+    paytype: "cod",
+  }).populate({
+    path: "payment.cod",
+    select: "status amount createdAt",
+  });
+  if (!order) {
+    return res.status(404).json({
+      msg: "Order is not found or may be it is paid online (cc paytype)",
+    });
+  }
+  if (order.status != "received") {
+    return res
+      .status(400)
+      .json({ msg: `Order status has to be "received" to do this action` });
+  }
+  if (order.payment.cod?.status != "CAPTURED") {
+    return res.status(400).json({ msg: "Order is not paid with visa." });
+  }
+  if (order.orderPaidWithVisa) {
+    return res.status(400).json({
+      msg: "You already have confirmed that this order is paid with visa.",
+    });
+  }
+
+  const receiver = await Carrier.findById(order.deliveredby);
+  if (!receiver) {
+    return res.status(404).json({ msg: "Receiver is not found" });
+  }
+
+  order.orderPaidWithVisa = true;
+  receiver.collectedVisaAmount -= order.price;
+  storekeeper.collectedVisaAmount += order.price;
   await Promise.all([order.save(), storekeeper.save(), receiver.save()]);
 
   res.status(200).json({ msg: "ok" });

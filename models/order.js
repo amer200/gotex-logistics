@@ -52,7 +52,7 @@ const orderSchema = new mongoose.Schema(
     },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     ordernumber: String,
-    paytype: String,
+    paytype: { type: String, enum: ["cod", "cc"] },
     price: Number,
     pieces: Number,
     description: String,
@@ -140,6 +140,11 @@ const orderSchema = new mongoose.Schema(
       cc: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
     },
     receiverPaidCash: {
+      type: Boolean,
+      default: false,
+    },
+    // to confirm that order is already paid with visa
+    orderPaidWithVisa: {
       type: Boolean,
       default: false,
     },

@@ -199,7 +199,13 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   const prevStatus = "pick to client";
   const changeStatusTo = "received";
 
-  const order = await Order.findOne({ _id: orderId, deliveredby: userId });
+  const order = await Order.findOne({
+    _id: orderId,
+    deliveredby: userId,
+  }).populate({
+    path: "payment.cod",
+    select: "status amount createdAt",
+  });
 
   await changeOrderStatus(order, prevStatus, changeStatusTo);
 
@@ -217,11 +223,13 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   order.images.received = images;
   await order.save();
 
-  if (order.payment.cod?.status != "CAPTURED") {
-    const carrier = await Carrier.findById(userId);
+  const carrier = await Carrier.findById(userId);
+  if (order.payment.cod?.status == "CAPTURED") {
+    carrier.collectedVisaAmount += order.price;
+  } else if (order.paytype.toLowerCase() == "cod") {
     carrier.collectedCashAmount += order.price;
-    await carrier.save();
   }
+  await carrier.save();
 
   res.status(200).json({ msg: "ok" });
 });
