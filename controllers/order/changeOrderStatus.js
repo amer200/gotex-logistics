@@ -226,7 +226,7 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   const carrier = await Carrier.findById(userId);
   if (order.payment.cod?.status == "CAPTURED") {
     carrier.collectedVisaAmount += order.price;
-  } else if (order.paytype.toLowerCase() == "cod") {
+  } else if (order.paytype == "cod") {
     carrier.collectedCashAmount += order.price;
   }
   await carrier.save();
