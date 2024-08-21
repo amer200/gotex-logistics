@@ -136,7 +136,6 @@ exports.getAllOrders = async (query) => {
   let matchStage = {
     $match: {
       ordernumber: { $regex: ordernumber, $options: "i" },
-      paytype: { $regex: paytype, $options: "i" },
       status: { $regex: status, $options: "i" },
       updatedAt: {
         $gte: new Date(startDate),
@@ -149,6 +148,16 @@ exports.getAllOrders = async (query) => {
     matchStage.$match.integrateRequest = true;
   } else if (get == "main") {
     matchStage.$match.integrateRequest = false;
+  }
+
+  if (paytype == "cc" || paytype == "cod") {
+    matchStage.$match.paytype = { $regex: paytype, $options: "i" };
+  } else if (paytype == "cash cod") {
+    matchStage.$match.paytype = "cod";
+    matchStage.$match["payment.cod"] = { $size: 0 };
+  } else if (paytype == "visa cod") {
+    matchStage.$match.paytype = "cod";
+    matchStage.$match.$and = [{ "payment.cod.status": "CAPTURED" }];
   }
 
   if (keyword) {
@@ -209,6 +218,7 @@ exports.getAllOrders = async (query) => {
       "collector.updatedAt": 0,
       "collector.orders": 0,
       "collector.collectedCashAmount": 0,
+      "collector.collectedVisaAmount": 0,
 
       "receiver.role": 0,
       "receiver.nid": 0,
