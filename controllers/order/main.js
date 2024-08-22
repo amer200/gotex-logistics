@@ -472,7 +472,7 @@ exports.editOrder = asyncHandler(async (req, res) => {
 });
 
 // Storekeeper takes the cash money of the cod order from receiver carrier
-exports.takeOrderCashMoney = asyncHandler(async (req, res) => {
+exports.takeOrderCashFromReceiver = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId } = req.params;
 
@@ -488,13 +488,8 @@ exports.takeOrderCashMoney = asyncHandler(async (req, res) => {
   });
   if (!order) {
     return res.status(404).json({
-      msg: "Order is not found or may be it is paid online (cc paytype)",
+      msg: "Order is not found or may be it is paid with cc paytype",
     });
-  }
-  if (order.status != "received") {
-    return res
-      .status(400)
-      .json({ msg: `Order status has to be "received" to do this action` });
   }
   if (order.payment.cod?.status == "CAPTURED") {
     return res.status(400).json({ msg: "This order is paid with visa." });
@@ -503,6 +498,11 @@ exports.takeOrderCashMoney = asyncHandler(async (req, res) => {
     return res.status(400).json({
       msg: "You should already have collected the cash for this order.",
     });
+  }
+  if (order.status != "received") {
+    return res
+      .status(400)
+      .json({ msg: `Order status has to be "received" to do this action` });
   }
 
   const receiver = await Carrier.findById(order.deliveredby);
@@ -517,7 +517,10 @@ exports.takeOrderCashMoney = asyncHandler(async (req, res) => {
 
   res.status(200).json({ msg: "ok" });
 });
-// Storekeeper confirms that the order is already paid (cod) successfully with visa
+/**
+ * Storekeeper confirms that the order is already paid (cod) successfully with visa
+ * so the order price is subtracted from collector collectedVisaAmount
+ */
 exports.orderPaidWithVisa = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { orderId } = req.params;
@@ -534,7 +537,7 @@ exports.orderPaidWithVisa = asyncHandler(async (req, res) => {
   });
   if (!order) {
     return res.status(404).json({
-      msg: "Order is not found or may be it is paid online (cc paytype)",
+      msg: "Order is not found or may be it is paid with cc paytype",
     });
   }
   if (order.status != "received") {
@@ -560,6 +563,97 @@ exports.orderPaidWithVisa = asyncHandler(async (req, res) => {
   receiver.collectedVisaAmount -= order.price;
   storekeeper.collectedVisaAmount += order.price;
   await Promise.all([order.save(), storekeeper.save(), receiver.save()]);
+
+  res.status(200).json({ msg: "ok" });
+});
+
+// Admin takes the cash money of the cod order from receiver carrier
+exports.takeOrderCashFromStorekeeper = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const order = await Order.findOne({
+    _id: orderId,
+    paytype: "cod",
+  }).populate({
+    path: "payment.cod",
+    select: "status amount createdAt",
+  });
+  if (!order) {
+    return res.status(404).json({
+      msg: "Order is not found or may be it is paid with cc paytype",
+    });
+  }
+  if (order.status != "received") {
+    return res
+      .status(400)
+      .json({ msg: `Order status has to be "received" to do this action` });
+  }
+  if (!order.receiverPaidCash) {
+    return res
+      .status(400)
+      .json({ msg: `Receiver has to give the cash to storekeeper firstly` });
+  }
+  if (order.payment.cod?.status == "CAPTURED") {
+    return res.status(400).json({ msg: "This order is paid with visa." });
+  }
+  if (order.storekeeperPaidCash) {
+    return res.status(400).json({
+      msg: "You should already have collected the cash for this order.",
+    });
+  }
+
+  const storekeeper = await Storekeeper.findById(order.storekeeper);
+  if (!storekeeper) {
+    return res.status(404).json({ msg: "storekeeper is not found" });
+  }
+
+  order.storekeeperPaidCash = true;
+  storekeeper.collectedCashAmount -= order.price;
+  await Promise.all([order.save(), storekeeper.save()]);
+
+  res.status(200).json({ msg: "ok" });
+});
+/**
+ * Admin confirms that the order is already paid (cod) successfully with visa
+ * so the order price is subtracted from storekeeper collectedVisaAmount
+ */
+exports.orderPaidWithVisaFromStorekeeper = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const order = await Order.findOne({
+    _id: orderId,
+    paytype: "cod",
+  }).populate({
+    path: "payment.cod",
+    select: "status amount createdAt",
+  });
+  if (!order) {
+    return res.status(404).json({
+      msg: "Order is not found or may be it is paid with cc paytype",
+    });
+  }
+  if (order.payment.cod?.status != "CAPTURED") {
+    return res.status(400).json({ msg: "Order is not paid with visa." });
+  }
+  if (!order.orderPaidWithVisa) {
+    return res.status(400).json({
+      msg: "Order has to be confirmed that it is paid with visa from collector first.",
+    });
+  }
+  if (order.paidWithVisaFromStorekeeper) {
+    return res.status(400).json({
+      msg: "You already have confirmed that this order is paid with visa.",
+    });
+  }
+
+  const storekeeper = await Storekeeper.findById(order.storekeeper);
+  if (!storekeeper) {
+    return res.status(404).json({ msg: "Receiver is not found" });
+  }
+
+  order.paidWithVisaFromStorekeeper = true;
+  storekeeper.collectedVisaAmount -= order.price;
+  await Promise.all([order.save(), storekeeper.save()]);
 
   res.status(200).json({ msg: "ok" });
 });

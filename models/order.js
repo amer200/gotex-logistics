@@ -148,6 +148,14 @@ const orderSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    storekeeperPaidCash: {
+      type: Boolean,
+      default: false,
+    },
+    paidWithVisaFromStorekeeper: {
+      type: Boolean,
+      default: false,
+    },
   },
   { versionKey: false, strict: false, timestamps: true }
 );

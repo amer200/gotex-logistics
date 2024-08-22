@@ -17,8 +17,10 @@ const {
   getOrdersWithoutCarriers,
   addOrderToReceiver,
   editOrder,
-  takeOrderCashMoney,
+  takeOrderCashFromReceiver,
   orderPaidWithVisa,
+  takeOrderCashFromStorekeeper,
+  orderPaidWithVisaFromStorekeeper,
 } = require("../controllers/order/main");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -134,7 +136,7 @@ routes.put("/edit-order/:id", isAuth(["data entry", "admin"]), editOrder);
 routes.put(
   "/take-order-money/:orderId",
   isAuth(["storekeeper"]),
-  takeOrderCashMoney
+  takeOrderCashFromReceiver
 );
 routes.put(
   "/order-paid-with-visa/:orderId",
@@ -142,4 +144,15 @@ routes.put(
   orderPaidWithVisa
 );
 
+// Admin
+routes.put(
+  "/take-order-money-from-storekeeper/:orderId",
+  isAuth(["admin"]),
+  takeOrderCashFromStorekeeper
+);
+routes.put(
+  "/order-paid-visa-from-storekeeper/:orderId",
+  isAuth(["admin"]),
+  orderPaidWithVisaFromStorekeeper
+);
 module.exports = routes;
