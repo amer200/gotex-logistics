@@ -223,13 +223,11 @@ exports.orderReceived = asyncHandler(async (req, res) => {
   order.images.received = images;
   await order.save();
 
-  const carrier = await Carrier.findById(userId);
-  if (order.payment.cod?.status == "CAPTURED") {
-    carrier.collectedVisaAmount += order.price;
-  } else if (order.paytype == "cod") {
+  if (order.paytype == "cod" && order.payment.cod?.status != "CAPTURED") {
+    const carrier = await Carrier.findById(userId);
     carrier.collectedCashAmount += order.price;
+    await carrier.save();
   }
-  await carrier.save();
 
   res.status(200).json({ msg: "ok" });
 });

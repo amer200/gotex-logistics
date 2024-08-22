@@ -72,7 +72,7 @@ exports.chargeForOrder = asyncHandler(async (req, res) => {
       url: "",
     },
     redirect: {
-      url: `https://dashboard.go-tex.net/logistics-test/payment/check-tap-payment/${orderId}/${code}`,
+      url: `https://dashboard.go-tex.net/logistics-test/payment/check-tap-payment/${orderId}/${carrierId}/${code}`,
     },
   });
   const config = {
@@ -114,7 +114,7 @@ const getCharge = asyncHandler((chargeId) => {
 });
 
 exports.checkPayment = asyncHandler(async (req, res) => {
-  const { orderId, code } = req.params;
+  const { orderId, carrierId, code } = req.params;
 
   const order = await Order.findById(orderId);
   if (!order) {
@@ -155,7 +155,10 @@ exports.checkPayment = asyncHandler(async (req, res) => {
 
   payment.status = currentStatus;
   payment.code = genRandomNumber(10);
-  await payment.save();
+
+  const carrier = await Carrier.findById(carrierId);
+  carrier.collectedVisaAmount += order.price;
+  await Promise.all([payment.save(), carrier.save()]);
 
   return res.render("paymentStatus", {
     text1: `Charge status is CAPTURED.`,
