@@ -154,9 +154,11 @@ exports.getAllOrders = async (query) => {
     matchStage.$match.paytype = { $regex: paytype, $options: "i" };
   } else if (paytype == "cash cod") {
     matchStage.$match.paytype = "cod";
+    matchStage.$match.status = "received";
     matchStage.$match["payment.cod"] = { $size: 0 };
   } else if (paytype == "visa cod") {
     matchStage.$match.paytype = "cod";
+    matchStage.$match.status = "received";
     matchStage.$match.$and = [{ "payment.cod.status": "CAPTURED" }];
   }
 
