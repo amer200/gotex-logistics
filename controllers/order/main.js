@@ -45,7 +45,7 @@ exports.getUserOrders = asyncHandler(async (req, res) => {
 
 exports.getCollectorOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const orders = await Order.find({ pickedby: userId }).sort({ updatedAt: -1 });
+  const orders = await Order.find({ pickedby: userId }).sort({ createdAt: -1 });
 
   res.status(200).json({ msg: "ok", data: orders });
 });
