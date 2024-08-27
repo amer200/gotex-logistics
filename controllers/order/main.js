@@ -93,18 +93,30 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
       },
     },
     {
-      $unwind: "$deliveredby",
+      $unwind: {
+        path: "$deliveredby",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $addFields: {
         "deliveredby.fullName": {
-          $concat: ["$deliveredby.firstName", " ", "$deliveredby.lastName"],
+          $cond: {
+            if: { $eq: ["$deliveredby", null] },
+            then: "",
+            else: {
+              $concat: ["$deliveredby.firstName", " ", "$deliveredby.lastName"],
+            },
+          },
         },
       },
     },
     {
       $match: {
-        "deliveredby.fullName": { $regex: receiver, $options: "i" },
+        $or: [
+          { $expr: { $eq: [receiver, ""] } }, // If receiver param is empty, match all documents
+          { "deliveredby.fullName": { $regex: receiver, $options: "i" } },
+        ],
       },
     },
     {
