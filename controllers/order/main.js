@@ -73,6 +73,7 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
   });
 });
 
+// storekeeper orders - get all orders that are in store orders and any status after in store
 exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { receiver = "" } = req.query;
@@ -154,6 +155,19 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
     },
     data: orders,
   });
+});
+// by storekeeper - get orders that should be delivered to the store (pending & pick to store status + in the storekeeper city)
+exports.getOrdersToBeStored = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  const storekeeper = await Storekeeper.findById(userId);
+
+  const orders = await Order.find({
+    status: { $in: ["pending", "pick to store"] },
+    sendercity: storekeeper.city,
+  }).sort({ updatedAt: -1 });
+
+  res.status(200).json({ result: orders.length, orders });
 });
 
 exports.trackOrder = asyncHandler(async (req, res) => {

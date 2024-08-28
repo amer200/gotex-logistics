@@ -21,6 +21,7 @@ const {
   orderPaidWithVisa,
   takeOrderCashFromStorekeeper,
   orderPaidWithVisaFromStorekeeper,
+  getOrdersToBeStored,
 } = require("../controllers/order/main");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -72,6 +73,7 @@ routes.get(
   isAuth("storekeeper"),
   getStorekeeperOrders
 );
+routes.get("/orders-to-be-stored", isAuth("storekeeper"), getOrdersToBeStored);
 
 //#region change order status
 routes.put(
