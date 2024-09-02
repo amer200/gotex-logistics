@@ -165,7 +165,12 @@ exports.getOrdersToBeStored = asyncHandler(async (req, res) => {
   const orders = await Order.find({
     status: { $in: ["pending", "pick to store"] },
     sendercity: storekeeper.city,
-  }).sort({ updatedAt: -1 });
+  })
+    .populate({
+      path: "pickedby",
+      select: "_id firstName lastName mobile",
+    })
+    .sort({ updatedAt: -1 });
 
   res.status(200).json({ result: orders.length, orders });
 });
