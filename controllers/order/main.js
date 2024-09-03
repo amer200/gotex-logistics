@@ -15,7 +15,7 @@ const mongoose = require("mongoose");
 exports.createOrder = asyncHandler(async (req, res) => {
   const order = await orderServices.createOrder(req.body, req.user.id, req.io);
 
-  res.json({ msg: "order created", data: order });
+  res.status(201).json({ msg: "order created", data: order });
 });
 
 // by admin
