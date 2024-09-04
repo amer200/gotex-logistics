@@ -117,14 +117,15 @@ exports.createPdf = (data, isreturn) => {
     // Add Description with border
     doc.fontSize(20).text(`Description: ${data.description}`, 10, 500);
     doc.moveTo(startX, 530).lineTo(endX, 530).stroke();
-    // Add CC with border
+    doc.rect(390, 160, 216, 152).fill("#ff5900");
+    doc.fontSize(20).fillColor("#ffffff")
     if (data.paytype == "cc") {
-      doc.moveTo(390, 160).lineTo(390, 300).lineWidth(2).stroke();
-      doc.fontSize(20).text(`PayType: CC`, 400, 225);
+      doc.moveTo(390, 160).lineTo(390, 312).lineWidth(2).stroke();
+      doc.fontSize(80).text(`CC`, 430, 165);
     } else {
-      doc.moveTo(390, 160).lineTo(390, 300).lineWidth(2).stroke();
-      doc.fontSize(20).text(`PayType: Cod`, 400, 215);
-      doc.fontSize(18).text(`Price :${data.price} SAR`, 400, 230);
+      doc.moveTo(390, 160).lineTo(390, 312).lineWidth(2).stroke();
+      doc.fontSize(40).text(`COD`, 457, 170);
+      doc.fontSize(30).text(`S.R ${data.price}`, 402, 220);
     }
     doc.end();
   });
