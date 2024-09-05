@@ -67,6 +67,7 @@ const orderSchema = new mongoose.Schema(
       dataEntry: String,
       admin: String,
       collector: String,
+      integrate: String,
     },
     isreturn: {
       type: Boolean,
@@ -98,6 +99,7 @@ const orderSchema = new mongoose.Schema(
         dataEntry: [String],
         admin: [String],
         collector: [String],
+        integrate: [String],
       },
       return: [String],
     },
