@@ -35,7 +35,7 @@ exports.createOrder = async (body, userId, io, integrateRequest = false) => {
     var createdby = userId;
   }
 
-  const order = await Order.create({
+  let order = await Order.create({
     sendername,
     senderaddress,
     sendercity,
@@ -63,6 +63,33 @@ exports.createOrder = async (body, userId, io, integrateRequest = false) => {
   await addOrderToCarrier(order, "collector", io);
   await order.save();
 
+  if (integrateRequest) {
+    order = {
+      _id: order._id,
+      recivername: order.recivername,
+      reciveraddress: order.reciveraddress,
+      recivercity: order.recivercity,
+      reciverdistrict: order.reciverdistrict,
+      reciverdistrictId: order.reciverdistrictId,
+      reciverphone: order.reciverphone,
+      sendername: order.sendername,
+      senderaddress: order.senderaddress,
+      sendercity: order.sendercity,
+      senderdistrict: order.senderdistrict,
+      senderdistrictId: order.senderdistrictId,
+      senderphone: order.senderphone,
+      paytype: order.paytype,
+      price: order.price,
+      pieces: order.pieces,
+      description: order.description,
+      weight: order.weight,
+      isreturn: order.isreturn,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      ordernumber: order.ordernumber,
+      billcode: order.billcode,
+    };
+  }
   return order;
 };
 
@@ -419,6 +446,9 @@ exports.cancelOrder = async (
   } else if (role == "admin") {
     order.images.canceled.admin = images;
     order.cancelDescription.admin = description;
+  } else if (integrateRequest) {
+    order.images.canceled.integrate = images;
+    order.cancelDescription.integrate = description;
   }
   await order.save();
 };
