@@ -35,7 +35,7 @@ exports.createOrder = async (body, userId, io, integrateRequest = false) => {
     var createdby = userId;
   }
 
-  const order = await Order.create({
+  let order = await Order.create({
     sendername,
     senderaddress,
     sendercity,
@@ -63,6 +63,33 @@ exports.createOrder = async (body, userId, io, integrateRequest = false) => {
   await addOrderToCarrier(order, "collector", io);
   await order.save();
 
+  if (integrateRequest) {
+    order = {
+      _id: order._id,
+      recivername: order.recivername,
+      reciveraddress: order.reciveraddress,
+      recivercity: order.recivercity,
+      reciverdistrict: order.reciverdistrict,
+      reciverdistrictId: order.reciverdistrictId,
+      reciverphone: order.reciverphone,
+      sendername: order.sendername,
+      senderaddress: order.senderaddress,
+      sendercity: order.sendercity,
+      senderdistrict: order.senderdistrict,
+      senderdistrictId: order.senderdistrictId,
+      senderphone: order.senderphone,
+      paytype: order.paytype,
+      price: order.price,
+      pieces: order.pieces,
+      description: order.description,
+      weight: order.weight,
+      isreturn: order.isreturn,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      ordernumber: order.ordernumber,
+      billcode: order.billcode,
+    };
+  }
   return order;
 };
 
@@ -136,7 +163,6 @@ exports.getAllOrders = async (query) => {
   let matchStage = {
     $match: {
       ordernumber: { $regex: ordernumber, $options: "i" },
-      paytype: { $regex: paytype, $options: "i" },
       status: { $regex: status, $options: "i" },
       updatedAt: {
         $gte: new Date(startDate),
@@ -149,6 +175,18 @@ exports.getAllOrders = async (query) => {
     matchStage.$match.integrateRequest = true;
   } else if (get == "main") {
     matchStage.$match.integrateRequest = false;
+  }
+
+  if (paytype == "cc" || paytype == "cod") {
+    matchStage.$match.paytype = { $regex: paytype, $options: "i" };
+  } else if (paytype == "cash cod") {
+    matchStage.$match.paytype = "cod";
+    matchStage.$match.status = "received";
+    matchStage.$match["payment.cod"] = { $size: 0 };
+  } else if (paytype == "visa cod") {
+    matchStage.$match.paytype = "cod";
+    matchStage.$match.status = "received";
+    matchStage.$match.$and = [{ "payment.cod.status": "CAPTURED" }];
   }
 
   if (keyword) {
@@ -209,6 +247,7 @@ exports.getAllOrders = async (query) => {
       "collector.updatedAt": 0,
       "collector.orders": 0,
       "collector.collectedCashAmount": 0,
+      "collector.collectedVisaAmount": 0,
 
       "receiver.role": 0,
       "receiver.nid": 0,
@@ -407,6 +446,9 @@ exports.cancelOrder = async (
   } else if (role == "admin") {
     order.images.canceled.admin = images;
     order.cancelDescription.admin = description;
+  } else if (integrateRequest) {
+    order.images.canceled.integrate = images;
+    order.cancelDescription.integrate = description;
   }
   await order.save();
 };

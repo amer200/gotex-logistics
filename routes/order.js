@@ -17,7 +17,11 @@ const {
   getOrdersWithoutCarriers,
   addOrderToReceiver,
   editOrder,
-  takeOrderMoney,
+  takeOrderCashFromReceiver,
+  orderPaidWithVisa,
+  takeOrderCashFromStorekeeper,
+  orderPaidWithVisaFromStorekeeper,
+  getOrdersToBeStored,
 } = require("../controllers/order/main");
 const orderSchema = require("../utils/validators/order/orderSchema");
 const inStoreRequestStatusSchema = require("../utils/validators/order/inStoreRequestStatusSchema");
@@ -69,6 +73,7 @@ routes.get(
   isAuth("storekeeper"),
   getStorekeeperOrders
 );
+routes.get("/orders-to-be-stored", isAuth("storekeeper"), getOrdersToBeStored);
 
 //#region change order status
 routes.put(
@@ -133,7 +138,23 @@ routes.put("/edit-order/:id", isAuth(["data entry", "admin"]), editOrder);
 routes.put(
   "/take-order-money/:orderId",
   isAuth(["storekeeper"]),
-  takeOrderMoney
+  takeOrderCashFromReceiver
+);
+routes.put(
+  "/order-paid-with-visa/:orderId",
+  isAuth(["storekeeper"]),
+  orderPaidWithVisa
 );
 
+// Admin
+routes.put(
+  "/take-order-money-from-storekeeper/:orderId",
+  isAuth(["admin"]),
+  takeOrderCashFromStorekeeper
+);
+routes.put(
+  "/order-paid-visa-from-storekeeper/:orderId",
+  isAuth(["admin"]),
+  orderPaidWithVisaFromStorekeeper
+);
 module.exports = routes;

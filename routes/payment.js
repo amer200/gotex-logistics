@@ -9,7 +9,7 @@ const {
 
 /** user payment [with tap gateway] */
 routes.post("/charge/:orderId", isAuth("receiver"), chargeForOrder);
-routes.get("/check-tap-payment/:orderId/:code", checkPayment);
+routes.get("/check-tap-payment/:orderId/:carrierId/:code", checkPayment);
 routes.get(
   "/order-payments/:orderId",
   isAuth(["receiver", "admin"]),
