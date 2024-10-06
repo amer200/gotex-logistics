@@ -2,30 +2,6 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
-    recivername: {
-      type: String,
-      required: true,
-    },
-    reciveraddress: {
-      type: String,
-      required: true,
-    },
-    recivercity: {
-      type: String,
-      required: true,
-    },
-    reciverdistrict: {
-      type: String,
-      required: true,
-    },
-    reciverdistrictId: {
-      type: Number,
-      required: true,
-    },
-    reciverphone: {
-      type: String,
-      required: true,
-    },
     sendername: {
       type: String,
       required: true,
@@ -50,6 +26,32 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    senderphone2: String,
+    recivername: {
+      type: String,
+      required: true,
+    },
+    reciveraddress: {
+      type: String,
+      required: true,
+    },
+    recivercity: {
+      type: String,
+      required: true,
+    },
+    reciverdistrict: {
+      type: String,
+      required: true,
+    },
+    reciverdistrictId: {
+      type: Number,
+      required: true,
+    },
+    reciverphone: {
+      type: String,
+      required: true,
+    },
+    reciverphone2: String,
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     ordernumber: String,
     paytype: { type: String, enum: ["cod", "cc"] },
