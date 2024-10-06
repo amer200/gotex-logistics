@@ -6,18 +6,21 @@ const axios = require("axios");
 const genRandomNumber = require("../utils/genRandomNumber");
 const carrier = require("../models/carrier");
 
+/** payment for order with paytype = cod (visa) */
 exports.chargeForOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
   const carrierId = req.user.id;
 
   const carrier = await Carrier.findById(carrierId);
 
-  const order = await Order.findById(orderId).populate({
+  const order = await Order.findOne({ _id: orderId, paytype: "cod" }).populate({
     path: "payment.cod",
     select: "status",
   });
   if (!order) {
-    return res.status(404).json({ msg: "Order is not found" });
+    return res
+      .status(404)
+      .json({ msg: "Order is not found or order paytype is not cod" });
   }
   if (["received", "canceled"].includes(order.status)) {
     return res
