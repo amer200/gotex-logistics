@@ -187,7 +187,7 @@ exports.trackOrder = asyncHandler(async (req, res) => {
       },
       {
         path: "deliveredby",
-        select: "_id firstName lastName",
+        select: "_id firstName lastName mobile",
       },
       {
         path: "storekeeper",
