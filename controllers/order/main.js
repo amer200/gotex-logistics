@@ -187,7 +187,7 @@ exports.trackOrder = asyncHandler(async (req, res) => {
       },
       {
         path: "deliveredby",
-        select: "_id firstName lastName",
+        select: "_id firstName lastName mobile",
       },
       {
         path: "storekeeper",
@@ -239,17 +239,20 @@ exports.returnOrder = asyncHandler(async (req, res) => {
     district: order.senderdistrict,
     districtId: order.senderdistrictId,
     phone: order.senderphone,
+    phone2: order.senderphone2,
   };
   order.sendername = order.recivername;
   order.sendercity = order.recivercity;
   order.senderaddress = order.reciveraddress;
   order.senderphone = order.reciverphone;
+  order.senderphone2 = order.reciverphone2;
   order.senderdistrict = order.reciverdistrict;
   order.senderdistrictId = order.reciverdistrictId;
   order.recivername = receiver.name;
   order.recivercity = receiver.city;
   order.reciveraddress = receiver.address;
   order.reciverphone = receiver.phone;
+  order.reciverphone2 = receiver.phone2;
   order.reciverdistrict = receiver.district;
   order.reciverdistrictId = receiver.districtId;
   createPdf(order, false);
@@ -457,12 +460,14 @@ exports.editOrder = asyncHandler(async (req, res) => {
   const { id: userId, role } = req.user;
   const { id: orderId } = req.params;
   const {
-    recivername,
-    reciveraddress,
-    reciverphone,
     sendername,
     senderaddress,
     senderphone,
+    senderphone2 = "",
+    recivername,
+    reciveraddress,
+    reciverphone,
+    reciverphone2 = "",
     price,
     pieces,
     description,
@@ -488,9 +493,11 @@ exports.editOrder = asyncHandler(async (req, res) => {
   order.recivername = recivername;
   order.reciveraddress = reciveraddress;
   order.reciverphone = reciverphone;
+  order.reciverphone2 = reciverphone2;
   order.sendername = sendername;
   order.senderaddress = senderaddress;
   order.senderphone = senderphone;
+  order.senderphone2 = senderphone2;
   order.price = price;
   order.pieces = pieces;
   order.description = description;
