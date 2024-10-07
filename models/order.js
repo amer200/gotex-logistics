@@ -2,6 +2,34 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
+    sendername: {
+      type: String,
+      required: true,
+    },
+    senderaddress: {
+      type: String,
+      required: true,
+    },
+    sendercity: {
+      type: String,
+      required: true,
+    },
+    senderdistrict: {
+      type: String,
+      required: true,
+    },
+    senderdistrictId: {
+      type: Number,
+      required: true,
+    },
+    senderphone: {
+      type: String,
+      required: true,
+    },
+    senderphone2: {
+      type: String,
+      default: "",
+    },
     recivername: {
       type: String,
       required: true,
@@ -26,29 +54,9 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    sendername: {
+    reciverphone2: {
       type: String,
-      required: true,
-    },
-    senderaddress: {
-      type: String,
-      required: true,
-    },
-    sendercity: {
-      type: String,
-      required: true,
-    },
-    senderdistrict: {
-      type: String,
-      required: true,
-    },
-    senderdistrictId: {
-      type: Number,
-      required: true,
-    },
-    senderphone: {
-      type: String,
-      required: true,
+      default: "",
     },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     ordernumber: String,
