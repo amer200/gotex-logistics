@@ -26,7 +26,10 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    senderphone2: String,
+    senderphone2: {
+      type: String,
+      default: "",
+    },
     recivername: {
       type: String,
       required: true,
@@ -51,7 +54,10 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    reciverphone2: String,
+    reciverphone2: {
+      type: String,
+      default: "",
+    },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     ordernumber: String,
     paytype: { type: String, enum: ["cod", "cc"] },
