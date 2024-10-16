@@ -205,13 +205,6 @@ exports.trackOrder = asyncHandler(async (req, res) => {
 exports.returnOrder = asyncHandler(async (req, res) => {
   const orderId = req.params.id;
 
-  let images = [];
-  if (req.files && req.files[0]) {
-    req.files.forEach((f) => {
-      images.push(f.path);
-    });
-  }
-
   const order = await Order.findById(orderId);
 
   if (!order) {
@@ -257,6 +250,17 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   order.reciverdistrictId = receiver.districtId;
   createPdf(order, false);
   await addOrderToCarrier(order, "receiver", req.io); // add new receiver with same city of sender
+
+  let images = [];
+  if (req.files && req.files[0]) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  } else {
+    return res.status(404).json({
+      msg: `images are required`,
+    });
+  }
 
   order.images.return = images;
   await order.save();
@@ -510,6 +514,7 @@ exports.editOrder = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok", data: order });
 });
 
+/******** COD paytype *******/
 // Storekeeper takes the cash money of the cod order from receiver carrier
 exports.takeOrderCashFromReceiver = asyncHandler(async (req, res) => {
   const userId = req.user.id;
