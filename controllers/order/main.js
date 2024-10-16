@@ -371,8 +371,8 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
 
   const totalCount = await countDocsAfterFiltering(
     Order,
-    lookupStages,
-    matchStage
+    matchStage,
+    lookupStages
   );
   const pagination = createPaginationObj(page, limit, totalCount);
 
