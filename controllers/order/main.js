@@ -91,6 +91,11 @@ exports.getCollectorOrders = asyncHandler(async (req, res) => {
     pagination,
     data: ordersPerPage,
   });
+  res.status(200).json({
+    result: ordersPerPage.length,
+    pagination,
+    data: ordersPerPage,
+  });
 });
 
 exports.getReceiverOrders = asyncHandler(async (req, res) => {
@@ -162,6 +167,9 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
       collectedCashAmount: receiver.collectedCashAmount,
       collectedVisaAmount: receiver.collectedVisaAmount,
     },
+    result: ordersPerPage.length,
+    pagination,
+    data: ordersPerPage,
     result: ordersPerPage.length,
     pagination,
     data: ordersPerPage,
@@ -364,7 +372,18 @@ exports.returnOrder = asyncHandler(async (req, res) => {
 });
 
 /** By Admin and Tracker */
+/** By Admin and Tracker */
 exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
+  const matchStage = {
+    $match: {
+      $or: [
+        { pickedby: { $not: { $exists: true } } }, // not exist means if = "" or the key doesn't exist
+        { deliveredby: { $not: { $exists: true } } },
+      ],
+    },
+  };
+
+  const sortStage = { $sort: { updatedAt: -1 } };
   const matchStage = {
     $match: {
       $or: [
@@ -465,6 +484,8 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
     matchStage,
     sortStage,
     projectStage,
+    sortStage,
+    projectStage,
     lookupStages
   );
 
@@ -474,6 +495,7 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
     data: ordersPerPage,
   });
 });
+/** By Admin */
 /** By Admin */
 exports.addOrderToCollector = asyncHandler(async (req, res) => {
   const { orderId, carrierId } = req.body;
@@ -511,6 +533,7 @@ exports.addOrderToCollector = asyncHandler(async (req, res) => {
 
   res.json({ msg: "ok", data: order });
 });
+/** By Admin and Storekeeper */
 /** By Admin and Storekeeper */
 exports.addOrderToReceiver = asyncHandler(async (req, res) => {
   const { orderId, carrierId } = req.body;
