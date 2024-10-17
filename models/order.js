@@ -166,6 +166,16 @@ const orderSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    addCarrierReason: {
+      collector: {
+        images: [String],
+        description: String,
+      },
+      receiver: {
+        images: [String],
+        description: String,
+      },
+    },
   },
   { versionKey: false, strict: false, timestamps: true }
 );

@@ -481,16 +481,10 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
 });
 /** By Admin */
 exports.addOrderToCollector = asyncHandler(async (req, res) => {
-  const { orderId, carrierId } = req.body;
+  const { orderId, carrierId, description } = req.body;
   const order = await Order.findById(orderId);
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
-  }
-
-  if (order.pickedby) {
-    return res.status(404).json({
-      msg: `Order already added to a collector`,
-    });
   }
 
   if (order.status != "pending") {
@@ -505,6 +499,20 @@ exports.addOrderToCollector = asyncHandler(async (req, res) => {
   }
 
   order.pickedby = carrierId;
+
+  let images = [];
+  if (req.files && req.files[0]) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  } else {
+    return res.status(404).json({
+      msg: `images are required`,
+    });
+  }
+
+  order.addCarrierReason.collector.images = images;
+  order.addCarrierReason.collector.description = description;
   await order.save();
 
   let notification = Notification.create({
@@ -518,16 +526,10 @@ exports.addOrderToCollector = asyncHandler(async (req, res) => {
 });
 /** By Admin and Storekeeper */
 exports.addOrderToReceiver = asyncHandler(async (req, res) => {
-  const { orderId, carrierId } = req.body;
+  const { orderId, carrierId, description } = req.body;
   const order = await Order.findById(orderId);
   if (!order) {
     return res.status(404).json({ msg: "Order is not found" });
-  }
-
-  if (order.deliveredby) {
-    return res.status(404).json({
-      msg: `Order already added to a receiver`,
-    });
   }
 
   if (order.status != "in store") {
@@ -542,6 +544,20 @@ exports.addOrderToReceiver = asyncHandler(async (req, res) => {
   }
 
   order.deliveredby = carrierId;
+
+  let images = [];
+  if (req.files && req.files[0]) {
+    req.files.forEach((f) => {
+      images.push(f.path);
+    });
+  } else {
+    return res.status(404).json({
+      msg: `images are required`,
+    });
+  }
+
+  order.addCarrierReason.receiver.images = images;
+  order.addCarrierReason.receiver.description = description;
   await order.save();
 
   let notification = Notification.create({

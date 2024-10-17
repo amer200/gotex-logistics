@@ -76,6 +76,8 @@ app.put(
 );
 app.put("/order/return-order/:id", uploadOrderData.array("images.return"));
 app.put("/order/problem-request", uploadOrderData.array("problem.images"));
+app.put("/order/add-order-to-collector", uploadOrderData.array("images"));
+app.put("/order/add-order-to-receiver", uploadOrderData.array("images"));
 
 app.put("/integrate/order/cancel-order", uploadOrderData.array("images"));
 
