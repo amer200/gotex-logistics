@@ -11,6 +11,7 @@ const Storekeeper = require("../../models/storekeeper");
 const orderServices = require("../../services/order");
 const { createPdf } = require("../../utils/createPdf");
 const mongoose = require("mongoose");
+const getDocsWithAggregation = require("../../utils/getDocsWithAggregation");
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const order = await orderServices.createOrder(req.body, req.user.id, req.io);
@@ -45,23 +46,120 @@ exports.getUserOrders = asyncHandler(async (req, res) => {
 
 exports.getCollectorOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const orders = await Order.find({ pickedby: userId }).sort({ createdAt: -1 });
 
-  res.status(200).json({ msg: "ok", data: orders });
+  const startDate = req.query.startDate || new Date("2000-01-01");
+  const endDate = req.query.endDate || new Date();
+  const { status = "" } = req.query;
+
+  const matchStage = {
+    $match: {
+      pickedby: new mongoose.Types.ObjectId(userId),
+      status: { $regex: status, $options: "i" },
+      createdAt: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    },
+  };
+
+  const projectStage = {
+    $project: {
+      __v: 0,
+
+      inStore: 0,
+      problem: 0,
+      receiverPaidCash: 0,
+      orderPaidWithVisa: 0,
+      storekeeperPaidCash: 0,
+      paidWithVisaFromStorekeeper: 0,
+    },
+  };
+
+  const sortStage = { $sort: { updatedAt: -1 } };
+
+  const { ordersPerPage, pagination } = await getDocsWithAggregation(
+    req.query.page,
+    req.query.limit,
+    Order,
+    matchStage,
+    sortStage,
+    projectStage
+  );
+
+  res.status(200).json({
+    result: ordersPerPage.length,
+    pagination,
+    data: ordersPerPage,
+  });
+  res.status(200).json({
+    result: ordersPerPage.length,
+    pagination,
+    data: ordersPerPage,
+  });
 });
+
 exports.getReceiverOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-
   const receiver = await Carrier.findById(userId);
-  const orders = await Order.find({
-    deliveredby: userId,
-    status: { $nin: ["pending", "pick to store"] },
-  })
-    .populate({
-      path: "payment.cod",
-      select: "status amount createdAt",
-    })
-    .sort({ updatedAt: -1 });
+
+  const startDate = req.query.startDate || new Date("2000-01-01");
+  const endDate = req.query.endDate || new Date();
+  const { status = "" } = req.query;
+
+  const matchStage = {
+    $match: {
+      deliveredby: new mongoose.Types.ObjectId(userId),
+      $and: [
+        // filter on any status unless pending and pick to store
+        { status: { $nin: ["pending", "pick to store"] } },
+        { status: { $regex: status, $options: "i" } },
+      ],
+      createdAt: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    },
+  };
+
+  const projectStage = {
+    $project: {
+      __v: 0,
+
+      problem: 0,
+      receiverPaidCash: 0,
+      orderPaidWithVisa: 0,
+      storekeeperPaidCash: 0,
+      paidWithVisaFromStorekeeper: 0,
+
+      "payment.cod.data": 0,
+      "payment.cod.code": 0,
+      "payment.cod.carrier": 0,
+      "payment.cod.updatedAt": 0,
+    },
+  };
+
+  const sortStage = { $sort: { updatedAt: -1 } };
+
+  const lookupStages = [
+    {
+      $lookup: {
+        from: "payments",
+        localField: "payment.cod",
+        foreignField: "_id",
+        as: "payment.cod",
+      },
+    },
+  ];
+
+  const { ordersPerPage, pagination } = await getDocsWithAggregation(
+    req.query.page,
+    req.query.limit,
+    Order,
+    matchStage,
+    sortStage,
+    projectStage,
+    lookupStages
+  );
 
   res.status(200).json({
     msg: "ok",
@@ -69,7 +167,9 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
       collectedCashAmount: receiver.collectedCashAmount,
       collectedVisaAmount: receiver.collectedVisaAmount,
     },
-    data: orders,
+    result: ordersPerPage.length,
+    pagination,
+    data: ordersPerPage,
   });
 });
 
@@ -268,10 +368,18 @@ exports.returnOrder = asyncHandler(async (req, res) => {
   res.status(200).json({ msg: "ok", data: order });
 });
 
+/** By Admin and Tracker */
 exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
-  const page = +req.query.page || 1;
-  const limit = +req.query.limit || 30;
-  const skip = (page - 1) * limit;
+  const matchStage = {
+    $match: {
+      $or: [
+        { pickedby: { $not: { $exists: true } } }, // not exist means if = "" or the key doesn't exist
+        { deliveredby: { $not: { $exists: true } } },
+      ],
+    },
+  };
+
+  const sortStage = { $sort: { updatedAt: -1 } };
 
   const lookupStages = [
     {
@@ -308,15 +416,6 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
       },
     },
   ];
-
-  let matchStage = {
-    $match: {
-      $or: [
-        { pickedby: { $not: { $exists: true } } }, // not exist means if = "" or the key doesn't exist
-        { deliveredby: { $not: { $exists: true } } },
-      ],
-    },
-  };
 
   const projectStage = {
     $project: {
@@ -364,21 +463,15 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
     },
   };
 
-  const ordersPerPage = await Order.aggregate([
-    ...lookupStages,
-    matchStage,
-    { $sort: { updatedAt: -1 } },
-    { $skip: skip },
-    { $limit: limit },
-    projectStage,
-  ]);
-
-  const totalCount = await countDocsAfterFiltering(
+  const { ordersPerPage, pagination } = await getDocsWithAggregation(
+    req.query.page,
+    req.query.limit,
     Order,
     matchStage,
+    sortStage,
+    projectStage,
     lookupStages
   );
-  const pagination = createPaginationObj(page, limit, totalCount);
 
   res.status(200).json({
     result: ordersPerPage.length,
@@ -386,6 +479,7 @@ exports.getOrdersWithoutCarriers = asyncHandler(async (req, res) => {
     data: ordersPerPage,
   });
 });
+/** By Admin */
 exports.addOrderToCollector = asyncHandler(async (req, res) => {
   const { orderId, carrierId } = req.body;
   const order = await Order.findById(orderId);
@@ -422,6 +516,7 @@ exports.addOrderToCollector = asyncHandler(async (req, res) => {
 
   res.json({ msg: "ok", data: order });
 });
+/** By Admin and Storekeeper */
 exports.addOrderToReceiver = asyncHandler(async (req, res) => {
   const { orderId, carrierId } = req.body;
   const order = await Order.findById(orderId);
