@@ -67,24 +67,24 @@ exports.createPdf = (data, isreturn) => {
     doc.registerFont(`Amiri-Regular`, customFont);
     doc
       .fontSize(20)
-      .text("From:", 10, 185)
+      .text("From:", 10, 170)
       .font(`Amiri-Regular`)
-      .text(isreturn == true ? data.recivername : data.sendername, 20, 205,
+      .text(isreturn == true ? data.recivername : data.sendername, 20, 185,
         { features: ['rtla'] })
-      .text(isreturn == true ? data.recivercity : data.sendercity, 20, 225,
+      .text(isreturn == true ? data.recivercity : data.sendercity, 20, 200,
         { features: ['rtla'] })
       .text(
         isreturn == true ? data.reciverdistrict : data.senderdistrict,
         20,
-        245,
+        220,
         { features: ['rtla'] }
       ).text(
         isreturn == true ? data.reciveraddress : data.senderaddress,
         20,
-        265,
+        245,
         { features: ['rtla'] }
       )
-      .text(isreturn == true ? data.reciverphone : data.senderphone, 20, 285);
+      .text(isreturn == true ? data.reciverphone : data.senderphone, 20, 265).text(isreturn == true ? data.reciverphone2 : data.senderphone2, 20, 285);
     doc.moveTo(startX, 310).lineTo(endX, 310).stroke();
     // Add Receiver details1 with border
     doc
@@ -106,17 +106,22 @@ exports.createPdf = (data, isreturn) => {
         400,
         { features: ['rtla'] }
       )
-      .text(isreturn == true ? data.senderphone : data.reciverphone, 20, 420);
-    doc.moveTo(startX, 445).lineTo(endX, 445).stroke();
+      .text(isreturn == true ? data.senderphone : data.reciverphone, 20, 420).text(
+        isreturn == true ? data.senderphone2 : data.reciverphone2,
+        20,
+        440,
+        { features: ['rtla'] }
+      );
+    doc.moveTo(startX, 465).lineTo(endX, 465).stroke();
 
     doc
       .fontSize(20)
-      .text(`Weight: ${data.weight}`, 50, 450)
-      .text(`Pieces:  ${data.pieces}`, 250, 450);
-    doc.moveTo(startX, 480).lineTo(endX, 480).stroke();
+      .text(`Weight: ${data.weight}`, 50, 480)
+      .text(`Pieces:  ${data.pieces}`, 250, 480);
+    doc.moveTo(startX, 510).lineTo(endX, 510).stroke();
     // Add Description with border
-    doc.fontSize(20).text(`Description: ${data.description}`, 10, 500);
-    doc.moveTo(startX, 530).lineTo(endX, 530).stroke();
+    doc.fontSize(20).text(`Description: ${data.description}`, 10, 530);
+    doc.moveTo(startX, 560).lineTo(endX, 560).stroke();
     doc.rect(390, 160, 216, 152).fill("#ff5900");
     doc.fontSize(20).fillColor("#ffffff")
     if (data.paytype == "cc") {
