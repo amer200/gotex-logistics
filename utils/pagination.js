@@ -25,6 +25,7 @@ exports.createPaginationObj = (page, limit, totalCount) => {
     currentPage: page,
     limit,
     numberOfPages,
+    totalOrders: totalCount,
   };
 
   return pagination;
