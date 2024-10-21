@@ -296,6 +296,7 @@ exports.getAllOrders = async (query) => {
 
   const totalCount = await countDocsAfterFiltering(
     Order,
+    [],
     matchStage,
     lookupStages
   );

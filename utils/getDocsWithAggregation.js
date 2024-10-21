@@ -5,13 +5,16 @@ const {
 
 /**
  * @Desc : get docs using aggregation + make pagination
+ * optional params :
+ * lookupStages => used if filter depends on it
+ * projectStage
  */
 const getDocsWithAggregation = async (
   page = 1,
   limit = 30,
   Order,
-  matchStage = {},
-  sortStage = {},
+  matchStage,
+  sortStage,
   projectStage,
   lookupStages = []
 ) => {
@@ -33,7 +36,12 @@ const getDocsWithAggregation = async (
 
   const ordersPerPage = await Order.aggregate(pipeline);
 
-  const totalCount = await countDocsAfterFiltering(Order, matchStage);
+  const totalCount = await countDocsAfterFiltering(
+    Order,
+    [],
+    matchStage,
+    lookupStages
+  );
   const pagination = createPaginationObj(page, limit, totalCount);
 
   return { ordersPerPage, pagination };

@@ -91,11 +91,6 @@ exports.getCollectorOrders = asyncHandler(async (req, res) => {
     pagination,
     data: ordersPerPage,
   });
-  res.status(200).json({
-    result: ordersPerPage.length,
-    pagination,
-    data: ordersPerPage,
-  });
 });
 
 exports.getReceiverOrders = asyncHandler(async (req, res) => {
@@ -157,8 +152,7 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
     Order,
     matchStage,
     sortStage,
-    projectStage,
-    lookupStages
+    projectStage
   );
 
   res.status(200).json({
@@ -176,15 +170,48 @@ exports.getReceiverOrders = asyncHandler(async (req, res) => {
 // storekeeper orders - get all orders that are in store orders and any status after in store
 exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const { receiver = "" } = req.query;
-
   const storekeeper = await Storekeeper.findById(userId);
-  const orders = await Order.aggregate([
+
+  const page = +req.query.page || 1;
+  const limit = +req.query.limit || 30;
+  const skip = (page - 1) * limit;
+  const startDate = req.query.startDate || new Date("2000-01-01");
+  const endDate = req.query.endDate || new Date();
+  const { status = "", paytype = "", receiver = "" } = req.query;
+
+  const lookupStages1 = [
     {
-      $match: {
-        storekeeper: new mongoose.Types.ObjectId(userId),
+      $lookup: {
+        from: "payments",
+        localField: "payment.cod",
+        foreignField: "_id",
+        as: "payment.cod",
       },
     },
+  ];
+
+  const matchStage1 = {
+    $match: {
+      storekeeper: new mongoose.Types.ObjectId(userId),
+      status: { $regex: status, $options: "i" },
+      createdAt: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    },
+  };
+
+  if (paytype == "cash cod") {
+    matchStage1.$match.paytype = "cod";
+    matchStage1.$match.status = "received";
+    matchStage1.$match["payment.cod"] = { $size: 0 };
+  } else if (paytype == "visa cod") {
+    matchStage1.$match.paytype = "cod";
+    matchStage1.$match.status = "received";
+    matchStage1.$match.$and = [{ "payment.cod.status": "CAPTURED" }];
+  }
+
+  const lookupStages2 = [
     {
       $lookup: {
         from: "carriers",
@@ -193,6 +220,9 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
         as: "deliveredby",
       },
     },
+  ];
+
+  const addFieldsStage = [
     {
       $unwind: {
         path: "$deliveredby",
@@ -212,40 +242,71 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
         },
       },
     },
-    {
-      $match: {
-        $or: [
-          { $expr: { $eq: [receiver, ""] } }, // If receiver param is empty, match all documents
-          { "deliveredby.fullName": { $regex: receiver, $options: "i" } },
-        ],
-      },
+  ];
+  const matchStage2 = {
+    $match: {
+      $or: [
+        { $expr: { $eq: [receiver, ""] } }, // If receiver param is empty, match all documents
+        { "deliveredby.fullName": { $regex: receiver, $options: "i" } },
+      ],
     },
-    {
-      $sort: { updatedAt: -1 },
+  };
+
+  const projectStage = {
+    $project: {
+      "deliveredby.firstName": 0,
+      "deliveredby.lastName": 0,
+      "deliveredby.email": 0,
+      "deliveredby.mobile": 0,
+      "deliveredby.role": 0,
+      "deliveredby.nid": 0,
+      "deliveredby.address": 0,
+      "deliveredby.city": 0,
+      "deliveredby.verified": 0,
+      "deliveredby.papers": 0,
+      "deliveredby.deliveryCity": 0,
+      "deliveredby.deliveryDistricts": 0,
+      "deliveredby.orders": 0,
+      "deliveredby.createdAt": 0,
+      "deliveredby.updatedAt": 0,
+      "deliveredby.password": 0,
+      "deliveredby.collectedCashAmount": 0,
+      "deliveredby.collectedVisaAmount": 0,
+
+      "payment.cod.data": 0,
+      "payment.cod.code": 0,
+      "payment.cod.order": 0,
+      "payment.cod.carrier": 0,
+      "payment.cod.updatedAt": 0,
     },
-    {
-      $project: {
-        "deliveredby.firstName": 0,
-        "deliveredby.lastName": 0,
-        "deliveredby.email": 0,
-        "deliveredby.mobile": 0,
-        "deliveredby.role": 0,
-        "deliveredby.nid": 0,
-        "deliveredby.address": 0,
-        "deliveredby.city": 0,
-        "deliveredby.verified": 0,
-        "deliveredby.papers": 0,
-        "deliveredby.deliveryCity": 0,
-        "deliveredby.deliveryDistricts": 0,
-        "deliveredby.orders": 0,
-        "deliveredby.createdAt": 0,
-        "deliveredby.updatedAt": 0,
-        "deliveredby.password": 0,
-        "deliveredby.collectedCashAmount": 0,
-        "deliveredby.collectedVisaAmount": 0,
-      },
-    },
-  ]);
+  };
+
+  const pipeline = [
+    ...lookupStages1,
+    matchStage1,
+    ...lookupStages2,
+    { $sort: { updatedAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+    ...addFieldsStage,
+    matchStage2,
+    projectStage,
+  ];
+  if (receiver) {
+    pipeline.push(addFieldsStage, matchStage2);
+  }
+
+  const ordersPerPage = await Order.aggregate(pipeline);
+
+  const totalCount = await countDocsAfterFiltering(
+    Order,
+    lookupStages1,
+    matchStage1,
+    lookupStages2,
+    addFieldsStage,
+    matchStage2
+  );
+  const pagination = createPaginationObj(page, limit, totalCount);
 
   res.status(200).json({
     msg: "ok",
@@ -253,7 +314,160 @@ exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
       collectedCashAmount: storekeeper.collectedCashAmount,
       collectedVisaAmount: storekeeper.collectedVisaAmount,
     },
-    data: orders,
+    result: ordersPerPage.length,
+    pagination,
+    data: ordersPerPage,
+  });
+});
+exports.getStorekeeperOrders = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const storekeeper = await Storekeeper.findById(userId);
+
+  const page = +req.query.page || 1;
+  const limit = +req.query.limit || 30;
+  const skip = (page - 1) * limit;
+  const startDate = req.query.startDate || new Date("2000-01-01");
+  const endDate = req.query.endDate || new Date();
+  const { status = "", paytype = "", receiver = "" } = req.query;
+
+  const lookupStages1 = [
+    {
+      $lookup: {
+        from: "payments",
+        localField: "payment.cod",
+        foreignField: "_id",
+        as: "payment.cod",
+      },
+    },
+  ];
+
+  const matchStage1 = {
+    $match: {
+      storekeeper: new mongoose.Types.ObjectId(userId),
+      status: { $regex: status, $options: "i" },
+      createdAt: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    },
+  };
+
+  if (paytype == "cash cod") {
+    matchStage1.$match.paytype = "cod";
+    matchStage1.$match.status = "received";
+    matchStage1.$match["payment.cod"] = { $size: 0 };
+  } else if (paytype == "visa cod") {
+    matchStage1.$match.paytype = "cod";
+    matchStage1.$match.status = "received";
+    matchStage1.$match.$and = [{ "payment.cod.status": "CAPTURED" }];
+  }
+
+  const lookupStages2 = [
+    {
+      $lookup: {
+        from: "carriers",
+        localField: "deliveredby",
+        foreignField: "_id",
+        as: "deliveredby",
+      },
+    },
+  ];
+
+  const addFieldsStage = [
+    {
+      $unwind: {
+        path: "$deliveredby",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        "deliveredby.fullName": {
+          $cond: {
+            if: { $eq: ["$deliveredby", null] },
+            then: "",
+            else: {
+              $concat: ["$deliveredby.firstName", " ", "$deliveredby.lastName"],
+            },
+          },
+        },
+      },
+    },
+  ];
+  const matchStage2 = {
+    $match: {
+      $or: [
+        { $expr: { $eq: [receiver, ""] } }, // If receiver param is empty, match all documents
+        { "deliveredby.fullName": { $regex: receiver, $options: "i" } },
+      ],
+    },
+  };
+
+  const projectStage = {
+    $project: {
+      "deliveredby.firstName": 0,
+      "deliveredby.lastName": 0,
+      "deliveredby.email": 0,
+      "deliveredby.mobile": 0,
+      "deliveredby.role": 0,
+      "deliveredby.nid": 0,
+      "deliveredby.address": 0,
+      "deliveredby.city": 0,
+      "deliveredby.verified": 0,
+      "deliveredby.papers": 0,
+      "deliveredby.deliveryCity": 0,
+      "deliveredby.deliveryDistricts": 0,
+      "deliveredby.orders": 0,
+      "deliveredby.createdAt": 0,
+      "deliveredby.updatedAt": 0,
+      "deliveredby.password": 0,
+      "deliveredby.collectedCashAmount": 0,
+      "deliveredby.collectedVisaAmount": 0,
+
+      "payment.cod.data": 0,
+      "payment.cod.code": 0,
+      "payment.cod.order": 0,
+      "payment.cod.carrier": 0,
+      "payment.cod.updatedAt": 0,
+    },
+  };
+
+  const pipeline = [
+    ...lookupStages1,
+    matchStage1,
+    ...lookupStages2,
+    { $sort: { updatedAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+    ...addFieldsStage,
+    matchStage2,
+    projectStage,
+  ];
+  if (receiver) {
+    pipeline.push(addFieldsStage, matchStage2);
+  }
+
+  const ordersPerPage = await Order.aggregate(pipeline);
+
+  const totalCount = await countDocsAfterFiltering(
+    Order,
+    lookupStages1,
+    matchStage1,
+    lookupStages2,
+    addFieldsStage,
+    matchStage2
+  );
+  const pagination = createPaginationObj(page, limit, totalCount);
+
+  res.status(200).json({
+    msg: "ok",
+    storekeeper: {
+      collectedCashAmount: storekeeper.collectedCashAmount,
+      collectedVisaAmount: storekeeper.collectedVisaAmount,
+    },
+    result: ordersPerPage.length,
+    pagination,
+    data: ordersPerPage,
   });
 });
 // by storekeeper - get orders that should be delivered to the store (pending & pick to store status + in the storekeeper city)
